@@ -1,0 +1,61 @@
+autogen definitions options;
+prog-name = smtp_client;
+prog-title = "SMTP Client";
+long-opts;
+
+main = { main-type = shell-process; };
+
+flag = {
+	name = root_dir;
+	value = r;
+	arg-type = string;
+	max = 1;
+	min = 1;
+	descrip   = "Root directory for message queues";
+	doc = 'name of root directory where message queues will be saved to.';
+};
+
+flag = {
+	name = log_file_name;
+	value = l;             
+	arg-type = string;
+	max = 1;         
+	min = 1;       
+	descrip = "File name for log file";
+	doc = 'name of the log file.';
+};
+
+flag = {
+	name = mail_send_timeout;
+	value = t;             
+	arg-type = number;
+    	range = "1->1000";
+    	max = 1;         
+    	min = 1;       
+    	descrip = "Timeout for mail sending";
+    	doc = 'timeout for mail sending (1-1000).';
+};
+
+flag = {
+ 	name = mail_retry_wait_time;
+    	value = w;             
+    	arg-type = number;
+    	range = "1->1000";
+    	max = 1;         
+    	min = 1;
+    	descrip = "Wait time before trying to resend mail";
+    	doc = 'wait time for retrying resending mail after timeout (1-1000).';
+};
+
+
+flag = {
+    name = number_of_workers;
+    value = n;             
+    arg-type = number;
+    max = 1;         
+    min = 1;       
+    descrip = "Max number of worker processes";
+    doc = 'max number of worker processes for mail handling.';
+};
+
+

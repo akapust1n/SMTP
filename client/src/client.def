@@ -1,0 +1,28 @@
+autogen definitions fsm;
+
+method = callout;
+type = reent;
+cookie = "const char *cmd";
+cookie = "void *state";
+
+prefix = client_fsm;
+
+state = state_connect, state_ehlo, state_helo, state_mail, state_rcpt, state_post_rcpt, state_data, state_send_message_body, state_quit, state_error;
+event = event_ready_to_connect, event_got_greeting, event_ehlo_response, event_ehlo_not_supported, event_helo_response, event_send_data, event_got_another_rcpt, event_ready_to_transfer, event_accept, event_disconnected, event_error_processed;
+
+transition =
+{ tst = init; tev = event_ready_to_connect; next = state_connect; },
+{ tst = state_connect; tev = event_got_greeting; next = state_ehlo; },
+{ tst = state_ehlo; tev = event_ehlo_response; next = state_mail; },
+{ tst = state_ehlo; tev = event_ehlo_not_supported; next = state_helo; },
+{ tst = state_helo; tev = event_helo_response; next = state_mail; },
+{ tst = state_mail; tev = event_accept; next = state_rcpt; },
+{ tst = state_rcpt; tev = event_accept; next = state_post_rcpt; },
+{ tst = state_post_rcpt; tev = event_got_another_rcpt; next = state_rcpt; },
+{ tst = state_post_rcpt; tev = event_send_data; next = state_data; },
+{ tst = state_data; tev = event_ready_to_transfer; next = state_send_message_body; },
+{ tst = state_send_message_body; tev = event_accept; next = state_quit; },
+{ tst = state_quit; tev = event_disconnected; next = done; },
+{ tst = "*"; tev = event_error; next = state_error; },
+{ tst = state_error; tev = event_error_processed; next = done; };
+
