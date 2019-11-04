@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -std=c99
+CFLAGS=-Wall  -std=c99
 SOURCESSERVER := $(shell find server -name '*.c')
 
 all: serverO
