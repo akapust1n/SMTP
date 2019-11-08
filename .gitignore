@@ -26,5 +26,7 @@
 *.exe
 *.out
 *.app
+
 serverO
 smtp.*
+*.autosave
