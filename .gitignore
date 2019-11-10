@@ -28,5 +28,11 @@
 *.app
 
 serverO
-smtp.*
+*.cflags
+*.config
+*.creator
+*.cxxflags
+*.files
+*.includes
+*.user
 *.autosave

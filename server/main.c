@@ -1,21 +1,13 @@
-#include <errno.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <string.h>
+#include "logger.h"
 
 #define PORT 10000
 #define MAX_CLIENTS 50
 
-int initSocker(int* listenSocket)
+struct argsForThread {
+    int listenSocket;
+};
+
+int initSocket(int* listenSocket)
 {
     int temp = 1;
 
@@ -58,9 +50,13 @@ int initSocker(int* listenSocket)
     }
     return 0;
 }
-void* myPoll(void* lSocket)
+
+void* myPoll(void* _args)
 {
-    int listenSocket = *(int*)lSocket;
+    struct argsForThread args = *(struct argsForThread*)_args;
+    int listenSocket = args.listenSocket;
+    LOG_DEBUG("Starting working thread=%lu", pthread_self());
+
     bool closeConn = false;
     char buffer[100];
     int timeout = 3 * 60 * 1000; // 3min
@@ -74,16 +70,16 @@ void* myPoll(void* lSocket)
     fds[0].events = POLLIN;
 
     do {
-        printf("Waiting on poll() at thread %lu \n", pthread_self());
+        LOG_DEBUG("Waiting on poll() at thread=%lu \n", pthread_self());
         int returnCode = poll(fds, (nfds_t)nfds, timeout);
 
         if (returnCode < 0) {
-            perror("  poll() failed");
+            LOG_DEBUG("  poll() failed");
             break;
         }
 
         if (returnCode == 0) {
-            printf("  poll() timed out.  End program.\n");
+            LOG_DEBUG("  poll() timed out.  End program.\n");
             break;
         }
 
@@ -93,27 +89,28 @@ void* myPoll(void* lSocket)
                 continue;
 
             if (!(fds[i].revents & POLLIN)) {
-                printf("  Error! revents = %d\n", fds[i].revents);
+                LOG_DEBUG("Error! revents=%d thread=%lu", fds[i].revents, pthread_self());
                 invalidStateOfServer = true;
                 break;
             }
             if (fds[i].fd == listenSocket) {
-                printf("  Listening socket is readable\n");
+                LOG_DEBUG(" Listening socket is readable. Socket=%d thread=%lu", listenSocket, pthread_self());
                 if (nfds >= MAX_CLIENTS) {
-                    printf("reach limit of client\n");
+                    LOG_DEBUG("reach limit of client thread=%lu", pthread_self());
                     continue;
                 }
                 do {
                     newSocket = accept(listenSocket, NULL, NULL);
                     if (newSocket < 0) {
-                       /* if (errno != EWOULDBLOCK) {
+                        /* if (errno != EWOULDBLOCK) {
                             perror("  accept() failed");
                             invalidStateOfServer = true;
-                        }*/ //todo catch more errors
+                        }*/
+                        //todo catch more errors
                         continue;
                     }
 
-                    printf("  New incoming connection - %d\n", newSocket);
+                    LOG_DEBUG("New incoming connection %d thread=%lu", newSocket, pthread_self());
                     fds[nfds].fd = newSocket;
                     fds[nfds].events = POLLIN;
                     ++nfds;
@@ -122,7 +119,7 @@ void* myPoll(void* lSocket)
             }
 
             else {
-                printf("  Descriptor %d is readable\n", fds[i].fd);
+                LOG_DEBUG("Descriptor %d is readable thread=%lu", fds[i].fd, pthread_self());
                 closeConn = false;
 
                 do {
@@ -136,12 +133,12 @@ void* myPoll(void* lSocket)
                     }
 
                     if (len == 0) {
-                        printf("  Connection closed\n");
+                        LOG_DEBUG("Connection closed. thread=%lu", pthread_self());
                         closeConn = true;
                         break;
                     }
 
-                    printf("  %d bytes received at thread %lu \n", len, pthread_self());
+                    LOG_DEBUG("  %d bytes received at thread=%lu", len, pthread_self());
 
                     // todo: remove this
                     returnCode = (int)send(fds[i].fd, buffer, (size_t)len, 0);
@@ -184,21 +181,40 @@ void* myPoll(void* lSocket)
 }
 int main()
 {
-    int listenSocket = -1;
+    struct argsForThread args = { .listenSocket = -1 };
 
-    if (initSocker(&listenSocket) < 0) {
+    if (initSocket(&(args.listenSocket)) < 0) {
         perror("Cant open socket");
         return -1;
     }
-    pthread_t tid1, tid2;
 
-    /* создание потока */
-    pthread_create(&tid1, 0, myPoll, &listenSocket);
-    pthread_create(&tid2, 0, myPoll, &listenSocket);
-    printf("Starting thread #1\n");
+    if (mq_unlink(MQ_QUEUE) < 0) {
+        printf("Warning %d (%s) on server mq_unlink.\n",
+            errno, strerror(errno)); //will write on first start
+    }
+
+    struct mq_attr attr = { .mq_maxmsg = 10, .mq_msgsize = bufSize };
+    mqd_t msqid = mq_open(MQ_QUEUE, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR, &attr);
+
+    if (msqid < 0) {
+        perror("mq_open error");
+        printf("Warning %d (%s) on server mq_open.\n",
+            errno, strerror(errno)); //will write on first start
+
+        return -1;
+    }
+
+    pthread_t tid1, tid2, tidLogger;
+
+    pthread_create(&tid1, 0, myPoll, &args);
+    pthread_create(&tid2, 0, myPoll, &args);
+    pthread_create(&tidLogger, 0, loggerMain, &msqid);
+
+    printf("staring logger... \n");
+    pthread_detach(tidLogger);
     pthread_detach(tid1);
-    printf("Starting thread #2\n");
     pthread_join(tid2, NULL);
 
-    return  0;
+    mq_close(msqid);
+    return 0;
 }
