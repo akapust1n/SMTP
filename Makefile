@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-Wall  -std=c99
+CC=g++
+CFLAGS=-Wall  -std=c++17
 LFLAGS = -lpthread -lrt
 SOURCESSERVER := $(shell find server -name '*.c')
 INCCOMON=-Icommon
