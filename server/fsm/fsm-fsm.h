@@ -37,14 +37,14 @@
 /*
  *  This file enumerates the states and transition events for a FSM.
  *
- *  te_fsm_state
+ *  te_ss_state
  *      The available states.  FSS_INIT is always defined to be zero
  *      and FSS_INVALID and FSS_DONE are always made the last entries.
  *
- *  te_fsm_event
+ *  te_ss_event
  *      The transition events.  These enumerate the event values used
  *      to select the next state from the current state.
- *      FSM_EV_INVALID is always defined at the end.
+ *      SS_EV_INVALID is always defined at the end.
  */
 #ifndef AUTOFSM_FSM_FSM_H_GUARD
 #define AUTOFSM_FSM_FSM_H_GUARD 1
@@ -54,47 +54,35 @@
  *  Count of non-terminal states.  The generated states INVALID and DONE
  *  are terminal, but INIT is not  :-).
  */
-#define FSM_STATE_CT  8
+#define SS_STATE_CT  9
 typedef enum {
-    FSM_ST_INIT,
-    FSM_ST_SOCKET_STATE_INIT,
-    FSM_ST_SOCKET_STATE_WAIT,
-    FSM_ST_SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS,
-    FSM_ST_SOCKET_STATE_RECEPIENTS_SET,
-    FSM_ST_SOCKET_STATE_WRITING_DATA,
-    FSM_ST_SOCKET_STATE_DELIVERING,
-    FSM_ST_SOCKET_STATE_CLOSED,
-    FSM_ST_INVALID,
-    FSM_ST_DONE
-} te_fsm_state;
+    SS_ST_INIT,    SS_ST_HELO,    SS_ST_MAIL,    SS_ST_RCPT,    SS_ST_DATA,
+    SS_ST_GMSG,    SS_ST_TMSG,    SS_ST_READY,   SS_ST_ERROR,   SS_ST_INVALID,
+    SS_ST_DONE
+} te_ss_state;
 
 /**
  *  Finite State machine transition Events.
  *
  *  Count of the valid transition events
  */
-#define FSM_EVENT_CT 13
+#define SS_EVENT_CT 12
 typedef enum {
-    FSM_EV_HANDLE_HELO,            FSM_EV_HANDLE_EHLO,
-    FSM_EV_HANDLE_MAIL,            FSM_EV_HANDLE_RCPT,
-    FSM_EV_HANDLE_RSET,            FSM_EV_HANDLE_DATA,
-    FSM_EV_HANDLE_QUIT,            FSM_EV_HANDLE_NOT_IMPLEMENTED,
-    FSM_EV_CONNECTION_ESTABLISHED, FSM_EV_CONNECTION_FAILED,
-    FSM_EV_MESSAGE_SAVED,          FSM_EV_TEXT,
-    FSM_EV_CLRF_DOT_CLRF,          FSM_EV_INVALID
-} te_fsm_event;
+    SS_EV_EHLO,    SS_EV_HELO,    SS_EV_MAIL,    SS_EV_RCPT,    SS_EV_DATA,
+    SS_EV_RSET,    SS_EV_VRFY,    SS_EV_NOP_,    SS_EV_QUIT,    SS_EV_TMSG,
+    SS_EV_GMSG,    SS_EV_ERROR,   SS_EV_INVALID
+} te_ss_event;
 
 /**
  *  Step the FSM.  Returns the resulting state.  If the current state is
- *  FSM_ST_DONE or FSM_ST_INVALID, it resets to
- *  FSM_ST_INIT and returns FSM_ST_INIT.
+ *  SS_ST_DONE or SS_ST_INVALID, it resets to
+ *  SS_ST_INIT and returns SS_ST_INIT.
  */
-extern te_fsm_state
-fsm_step(
-    te_fsm_state fsm_state,
-    te_fsm_event trans_evt,
-    void *state,
-    const char *cmd );
+extern te_ss_state
+ss_step(
+    te_ss_state ss_state,
+    te_ss_event trans_evt,
+    int fd, char** matchdata, int matchdatal, char* recv_buf, int recv_sz );
 
 #endif /* AUTOFSM_FSM_FSM_H_GUARD */
 /*

@@ -1,33 +1,118 @@
-autogen definitions fsm;
+AutoGen Definitions fsm;
 
-method = case;
+event  = ehlo, helo, mail, rcpt, data, rset, vrfy, nop_, quit, tmsg, gmsg, error;
+state  = helo, mail, rcpt, data, gmsg, tmsg, ready, error;
 type   = reentrant;
-cookie = "void *state";
-cookie = "const char *cmd";
+method = case;
+prefix = ss;
+cookie = "int fd, char** matchdata, int matchdatal, char* recv_buf, int recv_sz";
+transition = { tst = helo; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = mail; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = rcpt; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = data; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = gmsg; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = tmsg; tev = ehlo; next = error; ttype = ehlo;},
+{ tst = ready; tev = ehlo; next = helo; ttype = ehlo;},
+{ tst = error; tev = ehlo; next = error; ttype = ehlo;};
 
-prefix = fsm;
+transition = { tst = helo; tev = helo; next = error; ttype = helo;},
+{ tst = mail; tev = helo; next = error; ttype = helo;},
+{ tst = rcpt; tev = helo; next = error; ttype = helo;},
+{ tst = data; tev = helo; next = error; ttype = helo;},
+{ tst = gmsg; tev = helo; next = error; ttype = helo;},
+{ tst = tmsg; tev = helo; next = error; ttype = helo;},
+{ tst = ready; tev = helo; next = helo; ttype = helo;},
+{ tst = error; tev = helo; next = error; ttype = helo;};
 
-state = SOCKET_STATE_INIT, SOCKET_STATE_WAIT, SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS, SOCKET_STATE_RECEPIENTS_SET, SOCKET_STATE_WRITING_DATA, SOCKET_STATE_DELIVERING, SOCKET_STATE_CLOSED;
-event = handle_HELO, handle_EHLO, handle_MAIL, handle_RCPT, handle_RSET, handle_DATA, handle_QUIT, handle_NOT_IMPLEMENTED, connection_established, connection_failed, message_saved, text, CLRF_dot_CLRF;
+transition = { tst = helo; tev = mail; next = mail; ttype = mail;},
+{ tst = mail; tev = mail; next = error; ttype = mail;},
+{ tst = rcpt; tev = mail; next = error; ttype = mail;},
+{ tst = data; tev = mail; next = error; ttype = mail;},
+{ tst = gmsg; tev = mail; next = error; ttype = mail;},
+{ tst = tmsg; tev = mail; next = error; ttype = mail;},
+{ tst = ready; tev = mail; next = error; ttype = mail;},
+{ tst = error; tev = mail; next = error; ttype = mail;};
 
-transition =
-{ tst  = '*';	tev = connection_established; next = SOCKET_STATE_INIT; },
-{ tst  = SOCKET_STATE_INIT;	tev = handle_HELO; next = SOCKET_STATE_WAIT; },
-{ tst  = SOCKET_STATE_INIT;	tev = handle_QUIT; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_WAIT;	tev = handle_RSET; next = SOCKET_STATE_WAIT; },
-{ tst  = SOCKET_STATE_WAIT;	tev = handle_MAIL; next = SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS; },
-{ tst  = SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS;	tev = handle_RCPT; next = SOCKET_STATE_RECEPIENTS_SET; },
-{ tst  = SOCKET_STATE_RECEPIENTS_SET;	tev = handle_RCPT; next = SOCKET_STATE_RECEPIENTS_SET; },
-{ tst  = SOCKET_STATE_RECEPIENTS_SET;	tev = handle_RSET; next = SOCKET_STATE_WAIT; },
-{ tst  = SOCKET_STATE_RECEPIENTS_SET;	tev = handle_DATA; next = SOCKET_STATE_WRITING_DATA; },
-{ tst  = SOCKET_STATE_WRITING_DATA;	tev = CLRF_dot_CLRF; next = SOCKET_STATE_DELIVERING; },
-{ tst  = SOCKET_STATE_DELIVERING;	tev = message_saved; next = SOCKET_STATE_WAIT; },
-{ tst  = SOCKET_STATE_WAIT;	tev = handle_QUIT; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS;	tev = handle_QUIT; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_RECEPIENTS_SET;	tev = handle_QUIT; next = SOCKET_STATE_CLOSED; },
+transition = { tst = helo; tev = rcpt; next = error; ttype = rcpt;},
+{ tst = mail; tev = rcpt; next = rcpt; ttype = rcpt;},
+{ tst = rcpt; tev = rcpt; next = rcpt; ttype = rcpt;},
+{ tst = data; tev = rcpt; next = error; ttype = rcpt;},
+{ tst = gmsg; tev = rcpt; next = error; ttype = rcpt;},
+{ tst = tmsg; tev = rcpt; next = error; ttype = rcpt;},
+{ tst = ready; tev = rcpt; next = error; ttype = rcpt;},
+{ tst = error; tev = rcpt; next = error; ttype = rcpt;};
 
-{ tst  = SOCKET_STATE_INIT;	tev = connection_failed; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_WAIT;	tev = connection_failed; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_MAIL_CREATED_NO_RECEPIENTS;	tev = connection_failed; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_RECEPIENTS_SET;	tev = connection_failed; next = SOCKET_STATE_CLOSED; },
-{ tst  = SOCKET_STATE_WRITING_DATA;	tev = connection_failed; next = SOCKET_STATE_CLOSED; };
+transition = { tst = helo; tev = data; next = error; ttype = data;},
+{ tst = mail; tev = data; next = error; ttype = data;},
+{ tst = rcpt; tev = data; next = data; ttype = data;},
+{ tst = data; tev = data; next = error; ttype = data;},
+{ tst = gmsg; tev = data; next = error; ttype = data;},
+{ tst = tmsg; tev = data; next = error; ttype = data;},
+{ tst = ready; tev = data; next = error; ttype = data;},
+{ tst = error; tev = data; next = error; ttype = data;};
+
+transition = { tst = helo; tev = rset; next = ready; ttype = rset;},
+{ tst = mail; tev = rset; next = ready; ttype = rset;},
+{ tst = rcpt; tev = rset; next = ready; ttype = rset;},
+{ tst = data; tev = rset; next = ready; ttype = rset;},
+{ tst = gmsg; tev = rset; next = ready; ttype = rset;},
+{ tst = tmsg; tev = rset; next = ready; ttype = rset;},
+{ tst = ready; tev = rset; next = ready; ttype = rset;},
+{ tst = error; tev = rset; next = ready; ttype = rset;};
+
+transition = { tst = helo; tev = vrfy; next = helo; ttype = vrfy;},
+{ tst = mail; tev = vrfy; next = mail; ttype = vrfy;},
+{ tst = rcpt; tev = vrfy; next = rcpt; ttype = vrfy;},
+{ tst = data; tev = vrfy; next = data; ttype = vrfy;},
+{ tst = gmsg; tev = vrfy; next = gmsg; ttype = vrfy;},
+{ tst = tmsg; tev = vrfy; next = tmsg; ttype = vrfy;},
+{ tst = ready; tev = vrfy; next = ready; ttype = vrfy;},
+{ tst = error; tev = vrfy; next = error; ttype = vrfy;};
+
+transition = { tst = helo; tev = nop_; next = helo; ttype = nop_;},
+{ tst = mail; tev = nop_; next = mail; ttype = nop_;},
+{ tst = rcpt; tev = nop_; next = rcpt; ttype = nop_;},
+{ tst = data; tev = nop_; next = data; ttype = nop_;},
+{ tst = gmsg; tev = nop_; next = gmsg; ttype = nop_;},
+{ tst = tmsg; tev = nop_; next = tmsg; ttype = nop_;},
+{ tst = ready; tev = nop_; next = ready; ttype = nop_;},
+{ tst = error; tev = nop_; next = error; ttype = nop_;};
+
+transition = { tst = helo; tev = quit; next = done; ttype = quit;},
+{ tst = mail; tev = quit; next = done; ttype = quit;},
+{ tst = rcpt; tev = quit; next = done; ttype = quit;},
+{ tst = data; tev = quit; next = done; ttype = quit;},
+{ tst = gmsg; tev = quit; next = done; ttype = quit;},
+{ tst = tmsg; tev = quit; next = done; ttype = quit;},
+{ tst = ready; tev = quit; next = done; ttype = quit;},
+{ tst = error; tev = quit; next = done; ttype = quit;};
+
+transition = { tst = helo; tev = tmsg; next = error; ttype = tmsg;},
+{ tst = mail; tev = tmsg; next = error; ttype = tmsg;},
+{ tst = rcpt; tev = tmsg; next = error; ttype = tmsg;},
+{ tst = data; tev = tmsg; next = tmsg; ttype = tmsg;},
+{ tst = gmsg; tev = tmsg; next = tmsg; ttype = tmsg;},
+{ tst = tmsg; tev = tmsg; next = error; ttype = tmsg;},
+{ tst = ready; tev = tmsg; next = error; ttype = tmsg;},
+{ tst = error; tev = tmsg; next = error; ttype = tmsg;};
+
+transition = { tst = helo; tev = gmsg; next = error; ttype = gmsg;},
+{ tst = mail; tev = gmsg; next = error; ttype = gmsg;},
+{ tst = rcpt; tev = gmsg; next = error; ttype = gmsg;},
+{ tst = data; tev = gmsg; next = gmsg; ttype = gmsg;},
+{ tst = gmsg; tev = gmsg; next = gmsg; ttype = gmsg;},
+{ tst = tmsg; tev = gmsg; next = error; ttype = gmsg;},
+{ tst = ready; tev = gmsg; next = error; ttype = gmsg;},
+{ tst = error; tev = gmsg; next = error; ttype = gmsg;};
+
+transition = { tst = helo; tev = error; next = error; ttype = error;},
+{ tst = mail; tev = error; next = error; ttype = error;},
+{ tst = rcpt; tev = error; next = error; ttype = error;},
+{ tst = data; tev = error; next = error; ttype = error;},
+{ tst = gmsg; tev = error; next = error; ttype = error;},
+{ tst = tmsg; tev = error; next = error; ttype = error;},
+{ tst = ready; tev = error; next = error; ttype = error;},
+{ tst = error; tev = error; next = error; ttype = error;};
+
+transition = { tst = init; tev = noop; next = ready; ttype = ready;};
+transition = { tst = invalid; tev = noop; next = invalid; ttype = invalid;};

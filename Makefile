@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-Wall  -std=c++17
 LFLAGS = -lpthread -lrt
-SOURCESSERVER := $(shell find server -name '*.c')
+SOURCESSERVER := $(shell  find common \( -name '*.cpp' -o -name '*.c' \))
 INCCOMON=-Icommon
 SOURCESCOMMON:= $(shell find common -name '*.c')
 

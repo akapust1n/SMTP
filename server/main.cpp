@@ -56,7 +56,6 @@ void* myPoll(void* _args)
     int listenSocket = args.listenSocket;
     LOG_DEBUG("Starting working thread=%lu", pthread_self());
 
-    bool invalidStateOfServer = false;
     int nfds = 1;
     pollfd fds[100];
     memset(&fds, 0, sizeof(fds));
@@ -66,8 +65,8 @@ void* myPoll(void* _args)
 
     int result = 0;
     do {
-        int result = doPoll(fds, listenSocket, nfds, invalidStateOfServer);
-    } while (!invalidStateOfServer || result < 0);
+        result = doPoll(fds, listenSocket, nfds);
+    } while (result < 0);
 
     for (int i = 0; i < nfds; ++i) {
         if (fds[i].fd >= 0)
