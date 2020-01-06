@@ -109,7 +109,7 @@ int linked_list_insert(struct linked_list *list, uint32_t index, void *data, uin
 		new_node->next = node->next;
 		node->next = new_node;
 	}
-	
+	list->length++;
 	return 0;
 }
 
@@ -155,6 +155,7 @@ void linked_list_remove(struct linked_list *list, uint32_t index)
 			free(old_node);
 		}
 	}
+	list->length--;
 }
 
 int linked_list_push(struct linked_list *list, void *data, uint32_t data_size)
