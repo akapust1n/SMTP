@@ -9,6 +9,9 @@
 #include "stdlib.h"
 
 
+#define DYNAMIC_ARRAY_DEFAULT_INITIAL_SIZE 8
+
+
 int dynamic_array_create(uint32_t element_size, uint32_t initial_size, struct dynamic_array* array)
 {
 	if (array != NULL)
@@ -22,6 +25,17 @@ int dynamic_array_create(uint32_t element_size, uint32_t initial_size, struct dy
 	array->max_number_of_elements = initial_size;
 	array->element_size = element_size;
 	return 0;
+}
+
+int dynamic_array_free(struct dynamic_array* array)
+{
+	if (array == NULL)
+	{
+		perror("Passed NULL-pointer to dynamic_array free");
+		return -1;
+	}
+	free(array->data);
+	free(array);
 }
 
 int dynamic_array_get_item(uint32_t index, const struct dynamic_array* array, char** item)
@@ -86,7 +100,7 @@ int dynamic_array_put_item(struct dynamic_array* array, const char* item)
 		array->max_number_of_elements = new_size / array->element_size;
 	}
 	
-	if (array->current_number_of_elements == array->max_number_of_elements)
+	if (array->current_number_of_elements < array->max_number_of_elements)
 	{
 		uint64_t offset = array->current_number_of_elements * array->element_size;
 		memcpy(array->data + offset, item, array->element_size);
