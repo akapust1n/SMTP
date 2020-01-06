@@ -40,7 +40,7 @@ extern FILE * option_usage_fp;
 /**
  *  static const strings for smtp_client options
  */
-static char const smtp_client_opt_strs[596] =
+static char const smtp_client_opt_strs[565] =
 /*     0 */ "Root directory for message queues\0"
 /*    34 */ "ROOT_DIR\0"
 /*    43 */ "root-dir\0"
@@ -59,15 +59,12 @@ static char const smtp_client_opt_strs[596] =
 /*   298 */ "Max number of worker processes\0"
 /*   329 */ "NUMBER_OF_WORKERS\0"
 /*   347 */ "number-of-workers\0"
-/*   365 */ "Command file\0"
-/*   378 */ "CMD_FILE\0"
-/*   387 */ "cmd-file\0"
-/*   396 */ "display extended usage information and exit\0"
-/*   440 */ "help\0"
-/*   445 */ "extended usage information passed thru pager\0"
-/*   490 */ "more-help\0"
-/*   500 */ "SMTP_CLIENT\0"
-/*   512 */ "smtp_client - SMTP Client\n"
+/*   365 */ "display extended usage information and exit\0"
+/*   409 */ "help\0"
+/*   414 */ "extended usage information passed thru pager\0"
+/*   459 */ "more-help\0"
+/*   469 */ "SMTP_CLIENT\0"
+/*   481 */ "smtp_client - SMTP Client\n"
             "Usage:  %s { -<flag> [<val>] | --<name>[{=| }<val>] }...\n";
 
 /**
@@ -148,27 +145,14 @@ static char const smtp_client_opt_strs[596] =
 #define NUMBER_OF_WORKERS_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_NUMERIC))
 
-/**
- *  cmd_file option description:
- */
-/** Descriptive text for the cmd_file option */
-#define CMD_FILE_DESC      (smtp_client_opt_strs+365)
-/** Upper-cased name for the cmd_file option */
-#define CMD_FILE_NAME      (smtp_client_opt_strs+378)
-/** Name string for the cmd_file option */
-#define CMD_FILE_name      (smtp_client_opt_strs+387)
-/** Compiled in flag settings for the cmd_file option */
-#define CMD_FILE_FLAGS     (OPTST_DISABLED \
-        | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
-
 /*
  *  Help/More_Help option descriptions:
  */
-#define HELP_DESC       (smtp_client_opt_strs+396)
-#define HELP_name       (smtp_client_opt_strs+440)
+#define HELP_DESC       (smtp_client_opt_strs+365)
+#define HELP_name       (smtp_client_opt_strs+409)
 #ifdef HAVE_WORKING_FORK
-#define MORE_HELP_DESC  (smtp_client_opt_strs+445)
-#define MORE_HELP_name  (smtp_client_opt_strs+490)
+#define MORE_HELP_DESC  (smtp_client_opt_strs+414)
+#define MORE_HELP_name  (smtp_client_opt_strs+459)
 #define MORE_HELP_FLAGS (OPTST_IMM | OPTST_NO_INIT)
 #else
 #define MORE_HELP_DESC  HELP_DESC
@@ -265,18 +249,6 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ NUMBER_OF_WORKERS_DESC, NUMBER_OF_WORKERS_NAME, NUMBER_OF_WORKERS_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 6, VALUE_OPT_CMD_FILE,
-     /* equiv idx, value */ 6, VALUE_OPT_CMD_FILE,
-     /* equivalenced to  */ NO_EQUIVALENT,
-     /* min, max, act ct */ 1, 1, 0,
-     /* opt state flags  */ CMD_FILE_FLAGS, 0,
-     /* last opt argumnt */ { NULL }, /* --cmd_file */
-     /* arg list/cookie  */ NULL,
-     /* must/cannot opts */ NULL, NULL,
-     /* option proc      */ NULL,
-     /* desc, NAME, name */ CMD_FILE_DESC, CMD_FILE_NAME, CMD_FILE_name,
-     /* disablement strs */ NULL, NULL },
-
   {  /* entry idx, value */ INDEX_OPT_HELP, VALUE_OPT_HELP,
      /* equiv idx value  */ NO_EQUIVALENT, VALUE_OPT_HELP,
      /* equivalenced to  */ NO_EQUIVALENT,
@@ -305,9 +277,9 @@ static tOptDesc optDesc[OPTION_CT] = {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Reference to the upper cased version of smtp_client. */
-#define zPROGNAME       (smtp_client_opt_strs+500)
+#define zPROGNAME       (smtp_client_opt_strs+469)
 /** Reference to the title line for smtp_client usage. */
-#define zUsageTitle     (smtp_client_opt_strs+512)
+#define zUsageTitle     (smtp_client_opt_strs+481)
 /** There is no smtp_client configuration file. */
 #define zRcName         NULL
 /** There are no directories to search for smtp_client config files. */
@@ -442,7 +414,7 @@ tOptions smtp_clientOptions = {
       NO_EQUIVALENT, /* '-#' option index */
       NO_EQUIVALENT /* index of default opt */
     },
-    9 /* full option count */, 7 /* user option count */,
+    8 /* full option count */, 6 /* user option count */,
     smtp_client_full_usage, smtp_client_short_usage,
     NULL, NULL,
     PKGDATADIR, smtp_client_packager_info
@@ -593,9 +565,6 @@ static void bogus_function(void) {
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("Max number of worker processes"));
-
-  /* referenced via smtp_clientOptions.pOptDesc->pzText */
-  puts(_("Command file"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("display extended usage information and exit"));

@@ -67,13 +67,3 @@ flag = {
     descrip = "Max number of worker processes";
     doc = 'max number of worker processes for mail handling.';
 };
-
-flag = {
-   name = cmd_file;
-   value = c;
-   arg-type = string;
-   max = 1;
-   min = 1;
-   descrip = "Command file";
-   doc = 'file with commands to be sent by smtp client';
-};

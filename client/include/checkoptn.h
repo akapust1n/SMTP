@@ -50,12 +50,11 @@ typedef enum {
     INDEX_OPT_MAIL_SEND_TIMEOUT     =  3,
     INDEX_OPT_MAIL_RETRY_WAIT_TIME  =  4,
     INDEX_OPT_NUMBER_OF_WORKERS     =  5,
-    INDEX_OPT_CMD_FILE              =  6,
-    INDEX_OPT_HELP                  =  7,
-    INDEX_OPT_MORE_HELP             =  8
+    INDEX_OPT_HELP                  =  6,
+    INDEX_OPT_MORE_HELP             =  7
 } teOptIndex;
 /** count of all options for smtp_client */
-#define OPTION_CT    9
+#define OPTION_CT    8
 
 /**
  *  Interface defines for all options.  Replace "n" with the UPPER_CASED
@@ -118,7 +117,6 @@ typedef enum {
 #define VALUE_OPT_NUMBER_OF_WORKERS 'n'
 
 #define OPT_VALUE_NUMBER_OF_WORKERS (DESC(NUMBER_OF_WORKERS).optArg.argInt)
-#define VALUE_OPT_CMD_FILE       'c'
 /** option flag (value) for help-value option */
 #define VALUE_OPT_HELP          '?'
 /** option flag (value) for more-help-value option */
