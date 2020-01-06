@@ -29,11 +29,12 @@ int create_path(const char* path, mode_t mode)
 	return mkdir(path, mode);
 }
 
-int get_directory_listing(const char* path, dynamic_array* listing, int* listing_size)
+int get_directory_listing(const char* path, dynamic_array* listing)
 {
 	DIR* dp = NULL;
 	struct dirent *ep = NULL;
-	char file_path[512];
+	char file_path[128];
+	char *buffer_ptr = NULL;
 	int max_filename_len = sizeof(file_path) - sizeof(path) - 1;
 	
 	if (max_filename_len <= 0)
@@ -56,7 +57,11 @@ int get_directory_listing(const char* path, dynamic_array* listing, int* listing
 	
 	dp = opendir(path);
 	
-	*listing_size = 0;
+	if (dynamic_array_create(sizeof(char*), DYNAMIC_ARRAY_DEFAULT_INITIAL_SIZE, listing) != 0)
+	{
+		perror("Unable to allocate memory for dynamic array. Aborting");
+		return -4;
+	}
 
 	if (dp != NULL)
 	{
@@ -68,8 +73,9 @@ int get_directory_listing(const char* path, dynamic_array* listing, int* listing
 			(file_path + sizeof(path))[sizeof(dp->d_name)] = 0;
 			if (check_if_file_exists(file_path))
 			{
-				*listing_size += 1;
-				
+				buffer_ptr = (char *)malloc(strlen(file_path));
+				strncpy(buffer_ptr, file_path, strlen(file_path));
+				dynamic_array_put_item(listing, &buffer_ptr);
 			}
 		}
 		closedir(dp);
@@ -79,3 +85,18 @@ int get_directory_listing(const char* path, dynamic_array* listing, int* listing
 	return -1;
 }
 
+int free_listing(dynamic_array* listing)
+{
+	for (int i = 0; i < listing->current_number_of_items; i++)
+	{
+		char **item = NULL;
+		if (dynamic_array_get_item(i, listing, item) != 0)
+		{
+			perror("Failed to get item. Aborting");
+			return -1;
+		}
+		free(*item);
+		*item = NULL;
+	}
+	dynamic_array_free(listing);
+}
