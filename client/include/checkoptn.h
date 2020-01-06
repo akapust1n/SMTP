@@ -44,17 +44,22 @@
  *  Enumeration of each option type for smtp_client
  */
 typedef enum {
-    INDEX_OPT_ROOT_DIR              =  0,
-    INDEX_OPT_LOG_FILE_NAME         =  1,
-    INDEX_OPT_OUTBOX_PATH           =  2,
-    INDEX_OPT_MAIL_SEND_TIMEOUT     =  3,
-    INDEX_OPT_MAIL_RETRY_WAIT_TIME  =  4,
-    INDEX_OPT_NUMBER_OF_WORKERS     =  5,
-    INDEX_OPT_HELP                  =  6,
-    INDEX_OPT_MORE_HELP             =  7
+    INDEX_OPT_ROOT_DIR                         =  0,
+    INDEX_OPT_LOG_FILE_NAME                    =  1,
+    INDEX_OPT_MAIL_SEND_TIMEOUT                =  2,
+    INDEX_OPT_MAIL_RETRY_WAIT_TIME             =  3,
+    INDEX_OPT_NUMBER_OF_WORKERS                =  4,
+    INDEX_OPT_RANDOM_DIRECTORIES_FOR_WORKERS   =  5,
+    INDEX_OPT_RANDOM_FILENAMES_FOR_MAIL        =  6,
+    INDEX_OPT_OUTGOING_MAIL_BASE_DIR           =  7,
+    INDEX_OPT_OUTGOING_MAIL_READY_TO_SEND_DIR  =  8,
+    INDEX_OPT_OUTGOING_MAIL_PROCESS_DIR        =  9,
+    INDEX_OPT_OUTGOING_MAIL_SENT_DIR           = 10,
+    INDEX_OPT_HELP                             = 11,
+    INDEX_OPT_MORE_HELP                        = 12
 } teOptIndex;
 /** count of all options for smtp_client */
-#define OPTION_CT    8
+#define OPTION_CT    13
 
 /**
  *  Interface defines for all options.  Replace "n" with the UPPER_CASED
@@ -105,18 +110,23 @@ typedef enum {
  *  Interface defines for specific options.
  * @{
  */
-#define VALUE_OPT_ROOT_DIR       'r'
-#define VALUE_OPT_LOG_FILE_NAME  'l'
-#define VALUE_OPT_OUTBOX_PATH    'o'
-#define VALUE_OPT_MAIL_SEND_TIMEOUT 't'
+#define VALUE_OPT_ROOT_DIR       0x1001
+#define VALUE_OPT_LOG_FILE_NAME  0x1002
+#define VALUE_OPT_MAIL_SEND_TIMEOUT 0x1003
 
 #define OPT_VALUE_MAIL_SEND_TIMEOUT (DESC(MAIL_SEND_TIMEOUT).optArg.argInt)
-#define VALUE_OPT_MAIL_RETRY_WAIT_TIME 'w'
+#define VALUE_OPT_MAIL_RETRY_WAIT_TIME 0x1004
 
 #define OPT_VALUE_MAIL_RETRY_WAIT_TIME (DESC(MAIL_RETRY_WAIT_TIME).optArg.argInt)
 #define VALUE_OPT_NUMBER_OF_WORKERS 'n'
 
 #define OPT_VALUE_NUMBER_OF_WORKERS (DESC(NUMBER_OF_WORKERS).optArg.argInt)
+#define VALUE_OPT_RANDOM_DIRECTORIES_FOR_WORKERS 0x1005
+#define VALUE_OPT_RANDOM_FILENAMES_FOR_MAIL 0x1006
+#define VALUE_OPT_OUTGOING_MAIL_BASE_DIR 0x1007
+#define VALUE_OPT_OUTGOING_MAIL_READY_TO_SEND_DIR 0x1008
+#define VALUE_OPT_OUTGOING_MAIL_PROCESS_DIR 0x1009
+#define VALUE_OPT_OUTGOING_MAIL_SENT_DIR 0x100A
 /** option flag (value) for help-value option */
 #define VALUE_OPT_HELP          '?'
 /** option flag (value) for more-help-value option */

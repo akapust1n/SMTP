@@ -6,9 +6,9 @@ long-opts;
 main = { main-type = shell-process; };
 
 flag = {
-	name = root_dir;
-	value = r;
+	name = root-dir;
 	arg-type = string;
+	arg-default = "./outmail/";
 	max = 1;
 	min = 1;
 	descrip   = "Root directory for message queues";
@@ -16,8 +16,8 @@ flag = {
 };
 
 flag = {
-	name = log_file_name;
-	value = l;             
+	name = log-file-name;
+	arg-default = "smtp-client.log";         
 	arg-type = string;
 	max = 1;         
 	min = 1;       
@@ -26,19 +26,9 @@ flag = {
 };
 
 flag = {
-	name = outbox_path;
-	value = o;
-	arg-type = string;
-	max = 1;
-	min = 1;
-	descrip = "Directory for outgoing mails";
-	doc = "directory for outgoing mails.";
-};
-
-flag = {
-	name = mail_send_timeout;
-	value = t;             
+	name = mail-send-timeout;            
 	arg-type = number;
+	arg-default = 100;
     	range = "1->1000";
     	max = 1;         
     	min = 1;       
@@ -47,9 +37,9 @@ flag = {
 };
 
 flag = {
- 	name = mail_retry_wait_time;
-    	value = w;             
+ 	name = mail-retry-wait-time;       
     	arg-type = number;
+	arg-default = 300;
     	range = "1->1000";
     	max = 1;         
     	min = 1;
@@ -59,11 +49,66 @@ flag = {
 
 
 flag = {
-    name = number_of_workers;
+    name = number-of-workers;
     value = n;             
     arg-type = number;
+    arg-default = 4;
     max = 1;         
     min = 1;       
     descrip = "Max number of worker processes";
     doc = 'max number of worker processes for mail handling.';
+};
+
+flag = {
+   name = random-directories-for-workers;
+   disable   = disable;
+   descrip = "Dont use random directories for worker processes";
+   doc = 'Dont use random directories for worker processes';
+};
+
+flag = {
+   name = random-filenames-for-mail;
+   disable   = disable;
+   descrip = "Dont use random filenames for incoming mail";
+   doc = 'Dont use random filenames for incoming mail';
+};
+
+flag = {
+   name = outgoing-mail-base-dir;
+   arg-type = string;
+   arg-default = "outmail";
+   max = 1;
+   min = 1;
+   descrip   = "directory to scan for new mail (relative to root dir)";
+   doc = 'directory to scan for new mail (relative to root dir)';
+};
+
+flag = {
+   name = outgoing-mail-ready-to-send-dir;
+   arg-type = string;
+   arg-default = "ready";
+   max = 1;
+   min = 1;
+   descrip   = "directory for processed mails from base dir";
+   doc = 'directory for processed mails from base dir';
+};
+
+flag = {
+   name = outgoing-mail-process-dir;
+   arg-type = string;
+   arg-default = "queued";
+   max = 1;
+   min = 1;
+   descrip   = "directory for processes to get mail from (MX-based)";
+   doc = 'directory for processes to get mail from (MX-based)';
+};
+
+flag = {
+   name = outgoing-mail-sent-dir;
+   arg-type = string;
+   arg-default = "sent";
+   max = 1;
+   min = 1;
+   descrip   = "directory for processed mail";
+   doc = 'directory for processed mail';
 };
