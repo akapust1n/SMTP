@@ -46,14 +46,16 @@
 typedef enum {
     INDEX_OPT_ROOT_DIR              =  0,
     INDEX_OPT_LOG_FILE_NAME         =  1,
-    INDEX_OPT_MAIL_SEND_TIMEOUT     =  2,
-    INDEX_OPT_MAIL_RETRY_WAIT_TIME  =  3,
-    INDEX_OPT_NUMBER_OF_WORKERS     =  4,
-    INDEX_OPT_HELP                  =  5,
-    INDEX_OPT_MORE_HELP             =  6
+    INDEX_OPT_OUTBOX_PATH           =  2,
+    INDEX_OPT_MAIL_SEND_TIMEOUT     =  3,
+    INDEX_OPT_MAIL_RETRY_WAIT_TIME  =  4,
+    INDEX_OPT_NUMBER_OF_WORKERS     =  5,
+    INDEX_OPT_CMD_FILE              =  6,
+    INDEX_OPT_HELP                  =  7,
+    INDEX_OPT_MORE_HELP             =  8
 } teOptIndex;
 /** count of all options for smtp_client */
-#define OPTION_CT    7
+#define OPTION_CT    9
 
 /**
  *  Interface defines for all options.  Replace "n" with the UPPER_CASED
@@ -106,6 +108,7 @@ typedef enum {
  */
 #define VALUE_OPT_ROOT_DIR       'r'
 #define VALUE_OPT_LOG_FILE_NAME  'l'
+#define VALUE_OPT_OUTBOX_PATH    'o'
 #define VALUE_OPT_MAIL_SEND_TIMEOUT 't'
 
 #define OPT_VALUE_MAIL_SEND_TIMEOUT (DESC(MAIL_SEND_TIMEOUT).optArg.argInt)
@@ -115,6 +118,7 @@ typedef enum {
 #define VALUE_OPT_NUMBER_OF_WORKERS 'n'
 
 #define OPT_VALUE_NUMBER_OF_WORKERS (DESC(NUMBER_OF_WORKERS).optArg.argInt)
+#define VALUE_OPT_CMD_FILE       'c'
 /** option flag (value) for help-value option */
 #define VALUE_OPT_HELP          '?'
 /** option flag (value) for more-help-value option */

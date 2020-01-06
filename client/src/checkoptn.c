@@ -40,28 +40,34 @@ extern FILE * option_usage_fp;
 /**
  *  static const strings for smtp_client options
  */
-static char const smtp_client_opt_strs[512] =
+static char const smtp_client_opt_strs[596] =
 /*     0 */ "Root directory for message queues\0"
 /*    34 */ "ROOT_DIR\0"
 /*    43 */ "root-dir\0"
 /*    52 */ "File name for log file\0"
 /*    75 */ "LOG_FILE_NAME\0"
 /*    89 */ "log-file-name\0"
-/*   103 */ "Timeout for mail sending\0"
-/*   128 */ "MAIL_SEND_TIMEOUT\0"
-/*   146 */ "mail-send-timeout\0"
-/*   164 */ "Wait time before trying to resend mail\0"
-/*   203 */ "MAIL_RETRY_WAIT_TIME\0"
-/*   224 */ "mail-retry-wait-time\0"
-/*   245 */ "Max number of worker processes\0"
-/*   276 */ "NUMBER_OF_WORKERS\0"
-/*   294 */ "number-of-workers\0"
-/*   312 */ "display extended usage information and exit\0"
-/*   356 */ "help\0"
-/*   361 */ "extended usage information passed thru pager\0"
-/*   406 */ "more-help\0"
-/*   416 */ "SMTP_CLIENT\0"
-/*   428 */ "smtp_client - SMTP Client\n"
+/*   103 */ "Directory for outgoing mails\0"
+/*   132 */ "OUTBOX_PATH\0"
+/*   144 */ "outbox-path\0"
+/*   156 */ "Timeout for mail sending\0"
+/*   181 */ "MAIL_SEND_TIMEOUT\0"
+/*   199 */ "mail-send-timeout\0"
+/*   217 */ "Wait time before trying to resend mail\0"
+/*   256 */ "MAIL_RETRY_WAIT_TIME\0"
+/*   277 */ "mail-retry-wait-time\0"
+/*   298 */ "Max number of worker processes\0"
+/*   329 */ "NUMBER_OF_WORKERS\0"
+/*   347 */ "number-of-workers\0"
+/*   365 */ "Command file\0"
+/*   378 */ "CMD_FILE\0"
+/*   387 */ "cmd-file\0"
+/*   396 */ "display extended usage information and exit\0"
+/*   440 */ "help\0"
+/*   445 */ "extended usage information passed thru pager\0"
+/*   490 */ "more-help\0"
+/*   500 */ "SMTP_CLIENT\0"
+/*   512 */ "smtp_client - SMTP Client\n"
             "Usage:  %s { -<flag> [<val>] | --<name>[{=| }<val>] }...\n";
 
 /**
@@ -91,14 +97,27 @@ static char const smtp_client_opt_strs[512] =
         | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
 
 /**
+ *  outbox_path option description:
+ */
+/** Descriptive text for the outbox_path option */
+#define OUTBOX_PATH_DESC      (smtp_client_opt_strs+103)
+/** Upper-cased name for the outbox_path option */
+#define OUTBOX_PATH_NAME      (smtp_client_opt_strs+132)
+/** Name string for the outbox_path option */
+#define OUTBOX_PATH_name      (smtp_client_opt_strs+144)
+/** Compiled in flag settings for the outbox_path option */
+#define OUTBOX_PATH_FLAGS     (OPTST_DISABLED \
+        | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
+
+/**
  *  mail_send_timeout option description:
  */
 /** Descriptive text for the mail_send_timeout option */
-#define MAIL_SEND_TIMEOUT_DESC      (smtp_client_opt_strs+103)
+#define MAIL_SEND_TIMEOUT_DESC      (smtp_client_opt_strs+156)
 /** Upper-cased name for the mail_send_timeout option */
-#define MAIL_SEND_TIMEOUT_NAME      (smtp_client_opt_strs+128)
+#define MAIL_SEND_TIMEOUT_NAME      (smtp_client_opt_strs+181)
 /** Name string for the mail_send_timeout option */
-#define MAIL_SEND_TIMEOUT_name      (smtp_client_opt_strs+146)
+#define MAIL_SEND_TIMEOUT_name      (smtp_client_opt_strs+199)
 /** Compiled in flag settings for the mail_send_timeout option */
 #define MAIL_SEND_TIMEOUT_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_NUMERIC))
@@ -107,11 +126,11 @@ static char const smtp_client_opt_strs[512] =
  *  mail_retry_wait_time option description:
  */
 /** Descriptive text for the mail_retry_wait_time option */
-#define MAIL_RETRY_WAIT_TIME_DESC      (smtp_client_opt_strs+164)
+#define MAIL_RETRY_WAIT_TIME_DESC      (smtp_client_opt_strs+217)
 /** Upper-cased name for the mail_retry_wait_time option */
-#define MAIL_RETRY_WAIT_TIME_NAME      (smtp_client_opt_strs+203)
+#define MAIL_RETRY_WAIT_TIME_NAME      (smtp_client_opt_strs+256)
 /** Name string for the mail_retry_wait_time option */
-#define MAIL_RETRY_WAIT_TIME_name      (smtp_client_opt_strs+224)
+#define MAIL_RETRY_WAIT_TIME_name      (smtp_client_opt_strs+277)
 /** Compiled in flag settings for the mail_retry_wait_time option */
 #define MAIL_RETRY_WAIT_TIME_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_NUMERIC))
@@ -120,23 +139,36 @@ static char const smtp_client_opt_strs[512] =
  *  number_of_workers option description:
  */
 /** Descriptive text for the number_of_workers option */
-#define NUMBER_OF_WORKERS_DESC      (smtp_client_opt_strs+245)
+#define NUMBER_OF_WORKERS_DESC      (smtp_client_opt_strs+298)
 /** Upper-cased name for the number_of_workers option */
-#define NUMBER_OF_WORKERS_NAME      (smtp_client_opt_strs+276)
+#define NUMBER_OF_WORKERS_NAME      (smtp_client_opt_strs+329)
 /** Name string for the number_of_workers option */
-#define NUMBER_OF_WORKERS_name      (smtp_client_opt_strs+294)
+#define NUMBER_OF_WORKERS_name      (smtp_client_opt_strs+347)
 /** Compiled in flag settings for the number_of_workers option */
 #define NUMBER_OF_WORKERS_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_NUMERIC))
 
+/**
+ *  cmd_file option description:
+ */
+/** Descriptive text for the cmd_file option */
+#define CMD_FILE_DESC      (smtp_client_opt_strs+365)
+/** Upper-cased name for the cmd_file option */
+#define CMD_FILE_NAME      (smtp_client_opt_strs+378)
+/** Name string for the cmd_file option */
+#define CMD_FILE_name      (smtp_client_opt_strs+387)
+/** Compiled in flag settings for the cmd_file option */
+#define CMD_FILE_FLAGS     (OPTST_DISABLED \
+        | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
+
 /*
  *  Help/More_Help option descriptions:
  */
-#define HELP_DESC       (smtp_client_opt_strs+312)
-#define HELP_name       (smtp_client_opt_strs+356)
+#define HELP_DESC       (smtp_client_opt_strs+396)
+#define HELP_name       (smtp_client_opt_strs+440)
 #ifdef HAVE_WORKING_FORK
-#define MORE_HELP_DESC  (smtp_client_opt_strs+361)
-#define MORE_HELP_name  (smtp_client_opt_strs+406)
+#define MORE_HELP_DESC  (smtp_client_opt_strs+445)
+#define MORE_HELP_name  (smtp_client_opt_strs+490)
 #define MORE_HELP_FLAGS (OPTST_IMM | OPTST_NO_INIT)
 #else
 #define MORE_HELP_DESC  HELP_DESC
@@ -185,8 +217,20 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ LOG_FILE_NAME_DESC, LOG_FILE_NAME_NAME, LOG_FILE_NAME_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 2, VALUE_OPT_MAIL_SEND_TIMEOUT,
-     /* equiv idx, value */ 2, VALUE_OPT_MAIL_SEND_TIMEOUT,
+  {  /* entry idx, value */ 2, VALUE_OPT_OUTBOX_PATH,
+     /* equiv idx, value */ 2, VALUE_OPT_OUTBOX_PATH,
+     /* equivalenced to  */ NO_EQUIVALENT,
+     /* min, max, act ct */ 1, 1, 0,
+     /* opt state flags  */ OUTBOX_PATH_FLAGS, 0,
+     /* last opt argumnt */ { NULL }, /* --outbox_path */
+     /* arg list/cookie  */ NULL,
+     /* must/cannot opts */ NULL, NULL,
+     /* option proc      */ NULL,
+     /* desc, NAME, name */ OUTBOX_PATH_DESC, OUTBOX_PATH_NAME, OUTBOX_PATH_name,
+     /* disablement strs */ NULL, NULL },
+
+  {  /* entry idx, value */ 3, VALUE_OPT_MAIL_SEND_TIMEOUT,
+     /* equiv idx, value */ 3, VALUE_OPT_MAIL_SEND_TIMEOUT,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ MAIL_SEND_TIMEOUT_FLAGS, 0,
@@ -197,8 +241,8 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ MAIL_SEND_TIMEOUT_DESC, MAIL_SEND_TIMEOUT_NAME, MAIL_SEND_TIMEOUT_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 3, VALUE_OPT_MAIL_RETRY_WAIT_TIME,
-     /* equiv idx, value */ 3, VALUE_OPT_MAIL_RETRY_WAIT_TIME,
+  {  /* entry idx, value */ 4, VALUE_OPT_MAIL_RETRY_WAIT_TIME,
+     /* equiv idx, value */ 4, VALUE_OPT_MAIL_RETRY_WAIT_TIME,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ MAIL_RETRY_WAIT_TIME_FLAGS, 0,
@@ -209,8 +253,8 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ MAIL_RETRY_WAIT_TIME_DESC, MAIL_RETRY_WAIT_TIME_NAME, MAIL_RETRY_WAIT_TIME_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 4, VALUE_OPT_NUMBER_OF_WORKERS,
-     /* equiv idx, value */ 4, VALUE_OPT_NUMBER_OF_WORKERS,
+  {  /* entry idx, value */ 5, VALUE_OPT_NUMBER_OF_WORKERS,
+     /* equiv idx, value */ 5, VALUE_OPT_NUMBER_OF_WORKERS,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ NUMBER_OF_WORKERS_FLAGS, 0,
@@ -219,6 +263,18 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* must/cannot opts */ NULL, NULL,
      /* option proc      */ optionNumericVal,
      /* desc, NAME, name */ NUMBER_OF_WORKERS_DESC, NUMBER_OF_WORKERS_NAME, NUMBER_OF_WORKERS_name,
+     /* disablement strs */ NULL, NULL },
+
+  {  /* entry idx, value */ 6, VALUE_OPT_CMD_FILE,
+     /* equiv idx, value */ 6, VALUE_OPT_CMD_FILE,
+     /* equivalenced to  */ NO_EQUIVALENT,
+     /* min, max, act ct */ 1, 1, 0,
+     /* opt state flags  */ CMD_FILE_FLAGS, 0,
+     /* last opt argumnt */ { NULL }, /* --cmd_file */
+     /* arg list/cookie  */ NULL,
+     /* must/cannot opts */ NULL, NULL,
+     /* option proc      */ NULL,
+     /* desc, NAME, name */ CMD_FILE_DESC, CMD_FILE_NAME, CMD_FILE_name,
      /* disablement strs */ NULL, NULL },
 
   {  /* entry idx, value */ INDEX_OPT_HELP, VALUE_OPT_HELP,
@@ -249,9 +305,9 @@ static tOptDesc optDesc[OPTION_CT] = {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Reference to the upper cased version of smtp_client. */
-#define zPROGNAME       (smtp_client_opt_strs+416)
+#define zPROGNAME       (smtp_client_opt_strs+500)
 /** Reference to the title line for smtp_client usage. */
-#define zUsageTitle     (smtp_client_opt_strs+428)
+#define zUsageTitle     (smtp_client_opt_strs+512)
 /** There is no smtp_client configuration file. */
 #define zRcName         NULL
 /** There are no directories to search for smtp_client config files. */
@@ -386,7 +442,7 @@ tOptions smtp_clientOptions = {
       NO_EQUIVALENT, /* '-#' option index */
       NO_EQUIVALENT /* index of default opt */
     },
-    7 /* full option count */, 5 /* user option count */,
+    9 /* full option count */, 7 /* user option count */,
     smtp_client_full_usage, smtp_client_short_usage,
     NULL, NULL,
     PKGDATADIR, smtp_client_packager_info
@@ -527,6 +583,9 @@ static void bogus_function(void) {
   puts(_("File name for log file"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
+  puts(_("Directory for outgoing mails"));
+
+  /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("Timeout for mail sending"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
@@ -534,6 +593,9 @@ static void bogus_function(void) {
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("Max number of worker processes"));
+
+  /* referenced via smtp_clientOptions.pOptDesc->pzText */
+  puts(_("Command file"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("display extended usage information and exit"));

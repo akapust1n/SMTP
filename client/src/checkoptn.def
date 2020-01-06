@@ -26,6 +26,16 @@ flag = {
 };
 
 flag = {
+	name = outbox_path;
+	value = o;
+	arg-type = string;
+	max = 1;
+	min = 1;
+	descrip = "Directory for outgoing mails";
+	doc = "directory for outgoing mails.";
+};
+
+flag = {
 	name = mail_send_timeout;
 	value = t;             
 	arg-type = number;
@@ -58,4 +68,12 @@ flag = {
     doc = 'max number of worker processes for mail handling.';
 };
 
-
+flag = {
+   name = cmd_file;
+   value = c;
+   arg-type = string;
+   max = 1;
+   min = 1;
+   descrip = "Command file";
+   doc = 'file with commands to be sent by smtp client';
+};
