@@ -5,6 +5,10 @@
  */
 
 #include "client-run.h"
+#include "client-logger.h"
+#include "client-worker.h"
+#include "sockets.h"
+#include "hashtable.h"
 
 int spawn_worker_process(int id, struct smtp_client_context* main_ctx, struct smtp_client_worker_context* worker_ctx)
 {
@@ -58,6 +62,22 @@ int spawn_logger_process(struct smtp_client_context* main_ctx)
                 log_process_run(sockets[1], main_ctx->log_file_name);
         }
 
+        return 0;
+}
+
+int main_loop(struct smtp_client_context* ctx)
+{
+        fd_set write_fds;        
+        return 0;
+}
+
+int stop_all_worker_processes(struct smtp_client_context* ctx)
+{
+        return 0;
+}
+
+int stop_logger_process(struct smtp_client_context* ctx)
+{
         return 0;
 }
 
