@@ -90,7 +90,7 @@ void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t
 {
 	if (key == NULL)
 	{
-		perror("Key is NULL in hashtable_get()\n");
+		perror("Key is NULL in hashtable_get()");
 		return NULL;
 	}
 
@@ -118,6 +118,27 @@ void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t
 	}
 	
 	return NULL;
+}
+
+struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable, const void *key, uint32_t key_size)
+{
+	if (key == NULL)
+	{
+		perror("Key is NULL in hashtable_get()");
+		return NULL;
+	}
+
+	if (hashtable_check_if_struct_valid(hashtable) == false)
+	{
+		perror("Hashtable validity check failed");
+		return NULL;
+	}
+	
+	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+
+	const struct hashtable_node_list *node_list = hashtable->data[key_hashed];
+
+	return node_list;
 }
 
 int hashtable_put(struct hashtable *hashtable, const void *key, uint32_t key_size, const void *data, uint32_t data_size)

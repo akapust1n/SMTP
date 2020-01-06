@@ -9,7 +9,7 @@
 
 // Maximum nodes in a single node list;
 // Reallocate memory and rehash if this value reached
-#define HASHTABLE_LIST_LIMIT 32
+#define HASHTABLE_LIST_LIMIT 128
 
 
 struct hashtable_node_list
@@ -55,5 +55,7 @@ int hashtable_put(struct hashtable *hashtable, const void *key, uint32_t key_siz
 int hashtable_remove(struct hashtable *hashtable, const void *key, uint32_t key_size);
 
 void hashtable_free(struct hashtable *hashtable);  
+
+struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable, const void *key, uint32_t key_size);
 
 #endif
