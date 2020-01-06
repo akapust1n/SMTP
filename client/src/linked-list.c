@@ -61,7 +61,7 @@ void *linked_list_get(const struct linked_list *list, uint32_t index)
 		current_node = current_node->next;
 		index--;
 	}
-	return current_node;
+	return current_node->data;
 }
 
 int linked_list_insert(struct linked_list *list, uint32_t index, void *data, uint32_t data_size)
