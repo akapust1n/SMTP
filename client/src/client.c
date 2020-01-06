@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	argv += optct;
 
 	return run(OPT_ARG(ROOT_DIR), OPT_ARG(LOG_FILE_NAME), OPT_ARG(MAIL_SEND_TIMEOUT),
-                OPT_ARG(MAIL_RETRY_WAIT_TIME), OPT_ARG(NUMBER_OF_WORKERS));
+                OPT_ARG(MAIL_RETRY_WAIT_TIME), OPT_ARG(NUMBER_OF_WORKERS), OPT_ARG(CMD_FILE),
+                OPT_ARG(OUTBOX_PATH));
 }
 
