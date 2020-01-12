@@ -1,18 +1,14 @@
 #ifndef POLLING_H
 #define POLLING_H
 #include "logger.h"
+#include "serveClient.h"
 #include <map>
 #include <string>
-
 constexpr const int timeout = 3 * 60 * 1000; // 3min
 #define MAX_CLIENTS 50
 #define CLIENT_TIMEOUT 500
-struct Client {
-};
 
-using ClientsMap = std::map<int, Client>;
-
-inline int doPoll(pollfd fds[100], int listenSocket, int& nfds /*, ClientsMap& clients*/)
+inline int doPoll(pollfd fds[100], int listenSocket, int& nfds, ClientsMap& clients)
 {
     int newSocket = -1;
     bool closeConn = false;
@@ -62,20 +58,16 @@ inline int doPoll(pollfd fds[100], int listenSocket, int& nfds /*, ClientsMap& c
                     fds[nfds].fd = newSocket;
                     fds[nfds].events = POLLIN;
                     ++nfds;
+                    // init state TODO REPLACE ENUM VALUE
+                    clients[newSocket] = Client(newSocket, serverBufferSize, -1, 1);
 
                 } while (newSocket != -1);
             }
 
             else {
-                LOG_DEBUG("Descriptor %d is readable thread=%lu", fds[i].fd, pthread_self());
-                closeConn = false;
-
-                if (closeConn) {
-                    close(fds[i].fd);
-                    fds[i].fd = -1;
-                    resizeArray = true;
-                }
+                // todo ??
             }
+            // serve sockets
         }
     }
 }
