@@ -1,3 +1,6 @@
+#include <fcntl.h>
+#include <client-logger.h>
+#include <errno.h>
 #include "smtp_sockets.h"
 
 
@@ -16,7 +19,7 @@ void socket_set_nonblocking(int socket, bool is_nonblocking)
 
 int create_local_socket_pair(int *out_sockets)
 {
-	int result = socketpair(AF_LOCKAL, SOCK_DGRAM, 0, out_socket);
+	int result = socketpair(AF_LOCAL, SOCK_DGRAM, 0, out_sockets);
 	if (result != 0)
 	{
 		log_print("Error creating socket pair: %d", result);
@@ -25,9 +28,9 @@ int create_local_socket_pair(int *out_sockets)
 	return 0;
 };
 
-int socket_write(int socket, char *buf, int len)
+ssize_t socket_write(int socket, char *buf, int len)
 {
-	int result = send(socket, buf, len, 0);
+	ssize_t result = send(socket, buf, len, 0);
 	if (result >= 0)
 	{
 		return result;
@@ -39,9 +42,9 @@ int socket_write(int socket, char *buf, int len)
 	return -errno;
 };
 
-int socket_read(int socket, char *buf, int len)
+ssize_t socket_read(int socket, char *buf, int len)
 {
-	int result = recv(socket, buf, len, 0);
+	ssize_t result = recv(socket, buf, len, 0);
 	if (result >= 0)
 	{
 		return result;

@@ -2,6 +2,10 @@
 #define __LINKED_LIST_H__
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 struct linked_list
 {

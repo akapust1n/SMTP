@@ -10,7 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "client-worker.h"
-#include "checkoptn.h"#include "path-utils.h"
+#include "checkoptn.h"
+#include "path-utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "outgoing-mail-struct.h"
