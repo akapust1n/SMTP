@@ -1,7 +1,6 @@
 #ifndef FSMINTERFACE_H
 #define FSMINTERFACE_H
-enum te_ss_state { //todo fix
-};
+#include "fsm/fsm-fsm.h"
 
 //TODO
 te_ss_state HANDLE_HELO(int fd, char** matchdata, int matchdatal, char* recv_buf, int recv_sz, te_ss_state nxt){};

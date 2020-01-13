@@ -64,8 +64,9 @@ void* myPoll(void* _args)
     fds[0].events = POLLIN;
 
     int result = 0;
+    ClientsMap clients;
     do {
-        result = doPoll(fds, listenSocket, nfds);
+        result = doPoll(fds, listenSocket, nfds, clients);
     } while (result < 0);
 
     for (int i = 0; i < nfds; ++i) {
@@ -100,7 +101,7 @@ int main()
     }
 
     pthread_t tid1, tid2, tidLogger;
-
+    //todo non-fix sizee of pools
     pthread_create(&tid1, 0, myPoll, &args);
     pthread_create(&tid2, 0, myPoll, &args);
     pthread_create(&tidLogger, 0, loggerMain, &msqid);
