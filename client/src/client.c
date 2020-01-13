@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
                 OPT_ARG(OUTGOING_MAIL_SENT_DIR), OPT_ARG(LOG_FILE_NAME),
                 (unsigned int)OPT_ARG(MAIL_SEND_TIMEOUT), (unsigned int)OPT_ARG(MAIL_RETRY_WAIT_TIME),
                 (unsigned int)OPT_ARG(NUMBER_OF_WORKERS), ENABLED_OPT(RANDOM_DIRECTORIES_FOR_WORKERS),
-                ENABLED_OPT(RANDOM_FILENAMES_FOR_MAIL)
-                );
+                ENABLED_OPT(RANDOM_FILENAMES_FOR_MAIL));
 }
 
