@@ -1,18 +1,20 @@
 #ifndef __LINKED_LIST_H__
 #define __LINKED_LIST_H__
 
+#include <stdint.h>
+
 struct linked_list
 {
 	struct linked_list_node *head;
 	uint32_t length;
-}
+};
 
 struct linked_list_node
 {
 	struct linked_list_node *next;
 	void *data;
 	uint32_t data_size;
-}
+};
 
 struct linked_list *linked_list_create();
 void linked_list_free(struct linked_list *list);

@@ -4,7 +4,7 @@
 struct mail_file_descriptor
 {
 	char *domain;
-	FILE *file_ptr;
+	char *file_path;
 };
 
 struct mail_struct

@@ -9,9 +9,9 @@ struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint3
 	bool (*compare_function)(const void *, const void *, uint32_t),
 	void *(*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t),
         void (*free_node)(struct hashtable_node_list *, void *),
-	uint32_t max_size = HASHTABLE_SIZE_LIMIT,
-	uint32_t initial_size = HASHTABLE_DEFAULT_SIZE,
-	uint32_t max_node_list_size = HASHTABLE_LIST_LIMIT)
+	uint32_t max_size,
+	uint32_t initial_size,
+	uint32_t max_node_list_size)
 {
 	if (hash_function == NULL)
 	{
@@ -111,7 +111,7 @@ void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t
 	
 	for (const struct hashtable_node *node = node_list->list; node != NULL; node = node->next;)
 	{
-		if (hashtable->compare_function(node->key. key))
+		if (hashtable->compare_function(node->key, key))
 		{
 			return node->value;
 		}
@@ -134,7 +134,7 @@ struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable
 		return NULL;
 	}
 	
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
 	const struct hashtable_node_list *node_list = hashtable->data[key_hashed];
 
@@ -160,7 +160,7 @@ int hashtable_put(struct hashtable *hashtable, const void *key, uint32_t key_siz
 		return -1;
 	}
 
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
 	struct hashtable_node_list *node_list = hashtable->data[key_hashed];
 
@@ -197,7 +197,7 @@ int hashtable_remove(struct hashtable *hashtable, const void *key, uint32_t key_
 		return -1;
 	}
 
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
 	struct hashtable_node_list *node_list = hashtable->data[key_hashed];
 

@@ -1,6 +1,9 @@
 #ifndef __HASHTABLE_H__
 #define __HASHTABLE_H__
 
+#include <stdint.h>
+#include <stdbool.h>
+
 // Initial max size (in node lists)
 #define HASHTABLE_DEFAULT_SIZE 256
 
@@ -43,10 +46,10 @@ struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint3
         bool (*compare_function)(const void *, const void *, uint32_t),
         uint32_t (*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t),
         uint32_t (*free_node)(struct hashtable_node_list *, void *, uint32_t),
-        uint32_t max_size = HASHTABLE_SIZE_LIMIT,
-        uint32_t initial_size = HASHTABLE_DEFAULT_SIZE,
-        uint32_t max_node_list_size = HASHTABLE_LIST_LIMIT);
-	
+        uint32_t max_size,
+        uint32_t initial_size,
+        uint32_t max_node_list_size);	
+
 
 void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t key_size);
 

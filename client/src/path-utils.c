@@ -26,7 +26,15 @@ int create_path(const char* path, mode_t mode)
 	return mkdir(path, mode);
 }
 
-int get_directory_listing(const char* path, linked_list* listing)
+int create_subdirectory(const char* path, const char* directory, mode_t mode)
+{
+	char full_path[0x200];
+	strncpy(full_path, path, 0x200);
+	strcat(full_path, directory);
+	return create_path(full_path);
+}
+
+int get_directory_listing(const char* path, struct linked_list* listing)
 {
 	DIR* dp = NULL;
 	struct dirent *ep = NULL;
@@ -70,7 +78,7 @@ int get_directory_listing(const char* path, linked_list* listing)
 	return -1;
 }
 
-int free_listing(linked_list* listing)
+int free_listing(struct linked_list* listing)
 {
 	lined_list_free(listing);
 }
