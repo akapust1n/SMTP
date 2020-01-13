@@ -67,7 +67,18 @@ inline int doPoll(pollfd fds[100], int listenSocket, int& nfds, ClientsMap& clie
             else {
                 // todo ??
             }
-            // serve sockets
+            //resize array
+            if (!handleClient(fds[i].fd, clients)) {
+                for (int z = 0; z < nfds; ++z) {
+                    if (fds[i].fd == -1) {
+                        for (int j = z; j < nfds; ++j) {
+                            fds[j].fd = fds[j + 1].fd;
+                        }
+                        z--;
+                        nfds--;
+                    }
+                }
+            }
         }
     }
 }
