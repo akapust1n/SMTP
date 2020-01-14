@@ -11,6 +11,7 @@
 enum ReturnCodes {
     GreetindCode = 220
 };
+constexpr const int serverPort = 10000;
 
 constexpr int serverBufferSize = 1024;
 constexpr const char code220[] = "220";
@@ -33,17 +34,15 @@ struct Client {
         , message(nullptr)
         , flag(1)
     {
-        if (buffer_size > 0) {
-            buffer.resize(buffer_size);
-        }
 
+        buffer.reset(new char[1024]);
         if (needs_message) {
             message.reset(new msg);
             message->recepients_num = 0;
         }
     }
     int fd;
-    std::string buffer;
+    std::shared_ptr<char[]> buffer;
     int buffer_offset;
     int input_message;
     int state;
@@ -51,14 +50,10 @@ struct Client {
     std::shared_ptr<msg> message;
 };
 using ClientsMap = std::map<int, Client>;
-inline void mySend(const Client& client, const char msg[])
+inline bool mySend(const Client& client, const char msg[])
 {
     int resultSend = send(client.fd, msg, strlen(msg), 0);
-    if (resultSend > 0) {
-        //init socket
-        return;
-    } else {
-        //close socket
-    }
+    return resultSend > 0;
 }
+
 #endif

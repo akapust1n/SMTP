@@ -1,6 +1,5 @@
 #include "logger.h"
 #include "polling.h"
-#define PORT 10000
 
 struct argsForThread {
     int listenSocket;
@@ -33,7 +32,7 @@ int initSocket(int* listenSocket)
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(PORT);
+    addr.sin_port = htons(serverPort);
     if (bind(*listenSocket,
             (struct sockaddr*)&addr, sizeof(addr))
         < 0) {
