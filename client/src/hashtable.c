@@ -7,11 +7,11 @@ bool hashtable_check_if_struct_valid(const struct hashtable *hashtable);
 
 struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint32_t),
 	bool (*compare_function)(const void *, const void *, uint32_t),
-	void *(*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t),
-        void (*free_node)(struct hashtable_node_list *, void *),
-	uint32_t max_size = HASHTABLE_SIZE_LIMIT,
-	uint32_t initial_size = HASHTABLE_DEFAULT_SIZE,
-	uint32_t max_node_list_size = HASHTABLE_LIST_LIMIT)
+	uint32_t (*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t),
+	uint32_t (*free_node)(struct hashtable_node_list *, void *, uint32_t),
+	uint32_t max_size,
+	uint32_t initial_size,
+	uint32_t max_node_list_size)
 {
 	if (hash_function == NULL)
 	{
@@ -38,21 +38,21 @@ struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint3
 	
 	if (initial_size == 0)
 	{
-		fprintf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
+		printf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
 		initial_size = HASHTABLE_DEFAULT_SIZE;
 	}
 
 	
 	if (max_size == 0)
 	{
-		fprintf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
+		printf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
 		initial_size = HASHTABLE_SIZE_LIMIT;
 	}
 
 	
 	if (max_node_list_size == 0)
 	{
-		fprintf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
+		printf("Warning: zero size supplied to hashtable_create(). Assuming default value\n");
 		initial_size = HASHTABLE_LIST_LIMIT;
 	}
 	
@@ -74,12 +74,12 @@ struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint3
 	{
 		perror("Unable to allocate memory for hashtable nodes");
 		free(table);
-		retun NULL;
+		return NULL;
 	}
 	
 	for (struct hashtable_node_list *node_list = table->data; node_list != table->data + table->current_size; node_list++)
 	{
-		node_list->length = 0;
+		node_list->list_length = 0;
 		node_list->list = NULL;
 	}
 	
@@ -100,18 +100,18 @@ void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t
 		return NULL;
 	}
 	
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
-	const struct hashtable_node_list *node_list = hashtable->data[key_hashed];
+	const struct hashtable_node_list *node_list = hashtable->data + key_hashed;
 
-	if (node_list->length == 0)
+	if (node_list->list_length == 0)
 	{
 		return NULL;
 	}
 	
-	for (const struct hashtable_node *node = node_list->list; node != NULL; node = node->next;)
+	for (const struct hashtable_node *node = node_list->list; node != NULL; node = node->next)
 	{
-		if (hashtable->compare_function(node->key. key))
+		if (hashtable->compare_function(node->key, key, key_size))
 		{
 			return node->value;
 		}
@@ -120,7 +120,7 @@ void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t
 	return NULL;
 }
 
-struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable, const void *key, uint32_t key_size)
+struct hashtable_node_list* hashtable_get_list(struct hashtable *hashtable, const void *key, uint32_t key_size)
 {
 	if (key == NULL)
 	{
@@ -134,9 +134,9 @@ struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable
 		return NULL;
 	}
 	
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
-	const struct hashtable_node_list *node_list = hashtable->data[key_hashed];
+	struct hashtable_node_list *node_list = hashtable->data + key_hashed;
 
 	return node_list;
 }
@@ -160,11 +160,11 @@ int hashtable_put(struct hashtable *hashtable, const void *key, uint32_t key_siz
 		return -1;
 	}
 
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
-	struct hashtable_node_list *node_list = hashtable->data[key_hashed];
+	struct hashtable_node_list *node_list = hashtable->data + key_hashed;
 
-	if (node_list->length >= hashtable->max_node_list_size)
+	if (node_list->list_length >= hashtable->max_node_list_size)
 	{
 		if (hashtable->current_size == hashtable->max_size)
 		{
@@ -197,18 +197,19 @@ int hashtable_remove(struct hashtable *hashtable, const void *key, uint32_t key_
 		return -1;
 	}
 
-	uint32_t key_hashed = hashtable->hash_function(key) % hashtable->current_size;
+	uint32_t key_hashed = hashtable->hash_function(key, key_size) % hashtable->current_size;
 
-	struct hashtable_node_list *node_list = hashtable->data[key_hashed];
+	struct hashtable_node_list *node_list = hashtable->data + key_hashed;
 
-	return hashtable->free_node(node_list, key, key_size);
+	return hashtable->free_node(node_list, key);
 }
 
 void hashtable_free(struct hashtable *hashtable)
 {
 	if (hashtable->data != NULL)
 	{
-		for (struct hashtable_node_list *node_list = table->data; node_list != table->data + table->current_size; node_list++)
+		for (struct hashtable_node_list *node_list = hashtable->data;
+			node_list != hashtable->data + hashtable->current_size; node_list++)
 		{
 			struct hashtable_node *current_node = node_list->list;
 			while(current_node != NULL)
@@ -250,10 +251,11 @@ struct hashtable *hashtable_rehash(struct hashtable *hashtable, uint32_t new_siz
 	if (hashtable_check_if_struct_valid(hashtable) == false)
 	{
 		perror("Passed invalid hashtable struct to rehash function");
-		retun NULL;
+		return NULL;
 	}
 
-	struct hashtable_node_list *new_node_list = (hashtable_node_list *)malloc(new_size * sizeof(hashtable_node_list));
+	struct hashtable_node_list *new_node_list = (struct hashtable_node_list *)malloc(new_size *
+			sizeof(struct hashtable_node_list));
 	if (new_node_list == NULL)
 	{
 		perror("Failed to allocate memory for rehashing");
@@ -265,12 +267,13 @@ struct hashtable *hashtable_rehash(struct hashtable *hashtable, uint32_t new_siz
 	hashtable->data = new_node_list;
 	hashtable->current_size = new_size;
 
-	for (struct hashtable_node_list *node_list = old_node_list; node_list != old_node_list + old_size; node_list++)
+	for (struct hashtable_node_list *node_list = old_node_list; node_list != old_node_list + old_list_size; node_list++)
 	{
 		struct hashtable_node *current_node = node_list->list;
 		while(current_node != NULL)
 		{
-			hashtable->create_node(hashtable->data, current_node->key, current_node->key_size, current_node->data, current_node->data_size);
+			hashtable->create_node(hashtable->data, current_node->key, current_node->key_size,
+					current_node->value, current_node->value_size);
 			hashtable->free_node(node_list, current_node);
 			current_node = node_list->list;
 		}

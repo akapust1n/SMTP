@@ -14,6 +14,7 @@ struct linked_list *linked_list_create()
 	}
 	
 	list->length = 0;
+	return list;
 }
 
 void linked_list_free(struct linked_list *list)
@@ -50,7 +51,7 @@ void *linked_list_get(const struct linked_list *list, uint32_t index)
 		return NULL;
 	}
 	
-	const struct linked_list_node *current_node = list_head;
+	const struct linked_list_node *current_node = list->head;
 	while(index != 0)
 	{
 		if (current_node == NULL)
@@ -78,7 +79,7 @@ int linked_list_insert(struct linked_list *list, uint32_t index, void *data, uin
 		index = list->length;
 	}
 
-	struct linked_list_node *new_node = (linked_list_nod *)malloc(sizeof(linked_list_node));
+	struct linked_list_node *new_node = (struct linked_list_node *)malloc(sizeof(struct linked_list_node));
 
 	if (new_node == NULL)
 	{

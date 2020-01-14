@@ -21,8 +21,8 @@ int dynamic_array_create(uint32_t element_size, uint32_t initial_size, struct dy
 	}
 	array = (struct dynamic_array*)malloc(sizeof(struct dynamic_array));
 	array->data = (char*)malloc(element_size * initial_size);
-	array->current_number_of_elements = 0;
-	array->max_number_of_elements = initial_size;
+	array->current_number_of_items = 0;
+	array->max_number_of_items = initial_size;
 	array->element_size = element_size;
 	return 0;
 }
@@ -55,7 +55,7 @@ int dynamic_array_get_item(uint32_t index, const struct dynamic_array* array, ch
 		return -2;
 	}
 	
-	if (index >= array->number_of_elements)
+	if (index >= array->max_number_of_items)
 	{
 		perror("Requested index is out of bonds");
 		*item = NULL;
@@ -76,9 +76,9 @@ int dynamic_array_put_item(struct dynamic_array* array, const char* item)
 		return -1;
 	}
 
-	if (array->current_number_of_elements == array->max_number_of_elements)
+	if (array->current_number_of_items == array->max_number_of_items)
 	{
-		uint64_t current_size = array->current_number_of_elements * array->element_size;
+		uint64_t current_size = array->current_number_of_items * array->element_size;
 		uint64_t new_size = current_size * 2;
 		
 		if (current_size >=  MAX_DYNAMIC_ARRAY_SIZE)
@@ -97,14 +97,14 @@ int dynamic_array_put_item(struct dynamic_array* array, const char* item)
 			return -3;
 		}
 		array->data = result;
-		array->max_number_of_elements = new_size / array->element_size;
+		array->max_number_of_items = new_size / array->element_size;
 	}
 	
-	if (array->current_number_of_elements < array->max_number_of_elements)
+	if (array->current_number_of_items < array->max_number_of_items)
 	{
-		uint64_t offset = array->current_number_of_elements * array->element_size;
+		uint64_t offset = array->current_number_of_items * array->element_size;
 		memcpy(array->data + offset, item, array->element_size);
-		array->current_number_of_elements++;
+		array->current_number_of_items++;
 		return 0;
 	}
 
@@ -112,7 +112,7 @@ int dynamic_array_put_item(struct dynamic_array* array, const char* item)
 	return -4;
 }
 
-int dynamic_array_pop_item(const dynamic_array* array, char** item)
+int dynamic_array_pop_item(struct dynamic_array* array, char* item)
 {
 	if (item == NULL || array == NULL)
 	{
@@ -120,7 +120,7 @@ int dynamic_array_pop_item(const dynamic_array* array, char** item)
 		return -1;
 	}
 
-	if (array->current_number_of_elements > 0)
+	if (array->current_number_of_items > 0)
 	{
 		if (*item == NULL)
 		{
@@ -132,9 +132,9 @@ int dynamic_array_pop_item(const dynamic_array* array, char** item)
 			}
 		}
 		
-		uint64_t offset = (array->current_number_of_elements-1) * array->element_size;
+		uint64_t offset = (array->current_number_of_items-1) * array->element_size;
 		memcpy(*item, array->data + offset, array->element_size);
-		array->current_number_of_elements--;
+		array->current_number_of_items--;
 	}
 	else
 	{

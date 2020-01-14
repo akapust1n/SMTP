@@ -1,6 +1,11 @@
 #ifndef __HASHTABLE_H__
 #define __HASHTABLE_H__
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 // Initial max size (in node lists)
 #define HASHTABLE_DEFAULT_SIZE 256
 
@@ -29,10 +34,10 @@ struct hashtable_node
 
 struct hashtable
 {
-	uint32_t (*hash_function)(void *, uint32_t);
-	bool (*compare_function)(void *, void *, uint32_t);
-	uint32_t (*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t);
-	uint32_t (*free_node)(struct hashtable_node_list *, void *);
+	uint32_t (*hash_function)(const void *, uint32_t);
+	bool (*compare_function)(const void *, const void *, uint32_t);
+	uint32_t (*create_node)(struct hashtable_node_list *, const void *, uint32_t, const void *, uint32_t);
+	uint32_t (*free_node)(struct hashtable_node_list *, const void *);
 	uint32_t max_size;
 	uint32_t current_size;
 	uint32_t max_node_list_size;
@@ -43,10 +48,10 @@ struct hashtable *hashtable_create(uint32_t (*hash_function)(const void *, uint3
         bool (*compare_function)(const void *, const void *, uint32_t),
         uint32_t (*create_node)(struct hashtable_node_list *, void *, uint32_t, void *, uint32_t),
         uint32_t (*free_node)(struct hashtable_node_list *, void *, uint32_t),
-        uint32_t max_size = HASHTABLE_SIZE_LIMIT,
-        uint32_t initial_size = HASHTABLE_DEFAULT_SIZE,
-        uint32_t max_node_list_size = HASHTABLE_LIST_LIMIT);
-	
+        uint32_t max_size,
+        uint32_t initial_size,
+        uint32_t max_node_list_size);	
+
 
 void* hashtable_get(const struct hashtable *hashtable, const void *key, uint32_t key_size);
 
@@ -56,6 +61,7 @@ int hashtable_remove(struct hashtable *hashtable, const void *key, uint32_t key_
 
 void hashtable_free(struct hashtable *hashtable);  
 
-struct hashtable_node_list* hashtable_get_list(const struct hashtable *hashtable, const void *key, uint32_t key_size);
+struct hashtable_node_list* hashtable_get_list(struct hashtable *hashtable, const void *key, uint32_t key_size);
+
 
 #endif

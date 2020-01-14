@@ -9,7 +9,7 @@ struct linked_list *create_new_task_queue()
 
 struct worker_task *get_next_task(struct linked_list *tasks)
 {
-	struct worker_task *next_task = &(struct worker_task)linked_list_pop(tasks);
+	struct worker_task *next_task = (struct worker_task *)linked_list_pop(tasks);
 
 	return next_task;
 }
@@ -21,6 +21,7 @@ void add_task(struct linked_list *tasks, const char* domain)
 
 	memcpy(new_task.domain, domain, strlen(domain));
 	new_task.state = waiting_in_queue;
+	linked_list_push(tasks, &new_task, sizeof(new_task));
 }
 
 void remove_all_finished_tasks(struct linked_list *tasks)
@@ -29,7 +30,7 @@ void remove_all_finished_tasks(struct linked_list *tasks)
 	uint32_t index = 0;
 	while(current_node != NULL)
 	{
-		if ((worker_task)current_node->data).state == finished)
+		if (((struct worker_task *)current_node->data)->state == finished)
 		{
 			current_node = current_node->next;
 			linked_list_remove(tasks, index);

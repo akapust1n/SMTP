@@ -1,6 +1,12 @@
 #ifndef _DYNAMIC_ARRAY_H_
 #define _DYNAMIC_ARRAY_H_
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_DYNAMIC_ARRAY_SIZE 0x8000
+
 struct dynamic_array
 {
 	uint32_t current_number_of_items;
@@ -14,7 +20,7 @@ int dynamic_array_create(uint32_t element_size, uint32_t initial_size, struct dy
 int dynamic_array_free(struct dynamic_array* array);
 int dynamic_array_get_item(uint32_t index, const struct dynamic_array* array, char** item);
 int dynamic_array_put_item(struct dynamic_array* array, const char* item);
-int dynamic_array_pop_item(const dynamic_array* array, char* item);
+int dynamic_array_pop_item(struct dynamic_array* array, char* item);
 
 #endif
 

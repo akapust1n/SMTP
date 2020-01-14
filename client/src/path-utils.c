@@ -9,14 +9,14 @@
 bool check_if_directory_exists(const char* path)
 {
 	struct stat sb;
-	return (stat(pathname, &sb) == 0 && S_ISDIR(sb.st_mode));
+	return (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode));
 }
 
 
 bool check_if_file_exists(const char* path)
 {
 	struct stat sb;
-	return (stat(pathname, &sb) == 0 && S_ISREG(sb.st_mode));
+	return (stat(path, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
 
@@ -26,7 +26,15 @@ int create_path(const char* path, mode_t mode)
 	return mkdir(path, mode);
 }
 
-int get_directory_listing(const char* path, linked_list* listing)
+int create_subdirectory(const char* path, const char* directory, mode_t mode)
+{
+	char full_path[0x200];
+	strncpy(full_path, path, 0x200);
+	strcat(full_path, directory);
+	return create_path(full_path, mode);
+}
+
+bool get_directory_listing(const char *path, struct linked_list *listing)
 {
 	DIR* dp = NULL;
 	struct dirent *ep = NULL;
@@ -37,40 +45,40 @@ int get_directory_listing(const char* path, linked_list* listing)
 	if (max_filename_len <= 0)
 	{
 		perror("Path name is too long");
-		return max_filename_len;
+		return false;
 	}
 
-	if (listing == NULL || *listing != NULL)
+	if (listing == NULL)
 	{
 		perror("Listing variable must be a pointer to NULL");
-		return -3;
+		return false;
 	}
 	
 	dp = opendir(path);
 	
-	struct linked_list * listing = linked_list_create();
+	listing = linked_list_create();
 
 	if (dp != NULL)
 	{
 		strncpy(file_path, path, sizeof(file_path));
 		
-		while (ep = readdir(dp))
+		while ((ep = readdir(dp)) != NULL)
 		{
-			strncpy(file_path + sizeof(path), dp->d_name, max_filename_len);
-			(file_path + sizeof(path))[sizeof(dp->d_name)] = 0;
+			strncpy(file_path + sizeof(path), ep->d_name, max_filename_len);
+			(file_path + sizeof(path))[sizeof(ep->d_name)] = 0;
 			if (check_if_file_exists(file_path))
 			{
 				linked_list_push(listing, file_path, strlen(file_path));
 			}
 		}
 		closedir(dp);
-		return 0;
+		return true;
 	}
-	perror("Unable to open directory")
-	return -1;
+	perror("Unable to open directory");
+	return false;
 }
 
-int free_listing(linked_list* listing)
+int free_listing(struct linked_list* listing)
 {
-	lined_list_free(listing);
+	linked_list_free(listing);
 }
