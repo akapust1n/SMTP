@@ -40,7 +40,7 @@ extern FILE * option_usage_fp;
 /**
  *  static const strings for smtp_client options
  */
-static char const smtp_client_opt_strs[1183] =
+static char const smtp_client_opt_strs[965] =
 /*     0 */ "Root directory for message queues\0"
 /*    34 */ "ROOT_DIR\0"
 /*    43 */ "root-dir\0"
@@ -62,31 +62,24 @@ static char const smtp_client_opt_strs[1183] =
 /*   388 */ "RANDOM_DIRECTORIES_FOR_WORKERS\0"
 /*   419 */ "disable-random-directories-for-workers\0"
 /*   458 */ "disable\0"
-/*   466 */ "Dont use random filenames for incoming mail\0"
-/*   510 */ "RANDOM_FILENAMES_FOR_MAIL\0"
-/*   536 */ "disable-random-filenames-for-mail\0"
-/*   570 */ "directory to scan for new mail (relative to root dir)\0"
-/*   624 */ "OUTGOING_MAIL_BASE_DIR\0"
-/*   647 */ "outgoing-mail-base-dir\0"
-/*   670 */ "outmail\0"
-/*   678 */ "directory for processed mails from base dir\0"
-/*   722 */ "OUTGOING_MAIL_READY_TO_SEND_DIR\0"
-/*   754 */ "outgoing-mail-ready-to-send-dir\0"
-/*   786 */ "ready\0"
-/*   792 */ "directory for processes to get mail from (MX-based)\0"
-/*   844 */ "OUTGOING_MAIL_PROCESS_DIR\0"
-/*   870 */ "outgoing-mail-process-dir\0"
-/*   896 */ "queued\0"
-/*   903 */ "directory for processed mail\0"
-/*   932 */ "OUTGOING_MAIL_SENT_DIR\0"
-/*   955 */ "outgoing-mail-sent-dir\0"
-/*   978 */ "sent\0"
-/*   983 */ "display extended usage information and exit\0"
-/*  1027 */ "help\0"
-/*  1032 */ "extended usage information passed thru pager\0"
-/*  1077 */ "more-help\0"
-/*  1087 */ "SMTP_CLIENT\0"
-/*  1099 */ "smtp_client - SMTP Client\n"
+/*   466 */ "directory to scan for new mail (relative to root dir)\0"
+/*   520 */ "OUTGOING_MAIL_BASE_DIR\0"
+/*   543 */ "outgoing-mail-base-dir\0"
+/*   566 */ "outmail\0"
+/*   574 */ "directory for processes to get mail from (MX-based)\0"
+/*   626 */ "OUTGOING_MAIL_PROCESS_DIR\0"
+/*   652 */ "outgoing-mail-process-dir\0"
+/*   678 */ "queued\0"
+/*   685 */ "directory for processed mail\0"
+/*   714 */ "OUTGOING_MAIL_SENT_DIR\0"
+/*   737 */ "outgoing-mail-sent-dir\0"
+/*   760 */ "sent\0"
+/*   765 */ "display extended usage information and exit\0"
+/*   809 */ "help\0"
+/*   814 */ "extended usage information passed thru pager\0"
+/*   859 */ "more-help\0"
+/*   869 */ "SMTP_CLIENT\0"
+/*   881 */ "smtp_client - SMTP Client\n"
             "Usage:  %s { -<flag> [<val>] | --<name>[{=| }<val>] }...\n";
 
 /**
@@ -181,62 +174,31 @@ static char const smtp_client_opt_strs[1183] =
 #define RANDOM_DIRECTORIES_FOR_WORKERS_FLAGS     (OPTST_DISABLED)
 
 /**
- *  random-filenames-for-mail option description:
- */
-/** Descriptive text for the random-filenames-for-mail option */
-#define RANDOM_FILENAMES_FOR_MAIL_DESC      (smtp_client_opt_strs+466)
-/** Upper-cased name for the random-filenames-for-mail option */
-#define RANDOM_FILENAMES_FOR_MAIL_NAME      (smtp_client_opt_strs+510)
-/** disablement name for the random-filenames-for-mail option */
-#define NOT_RANDOM_FILENAMES_FOR_MAIL_name  (smtp_client_opt_strs+536)
-/** disablement prefix for the random-filenames-for-mail option */
-#define NOT_RANDOM_FILENAMES_FOR_MAIL_PFX   (smtp_client_opt_strs+458)
-/** Name string for the random-filenames-for-mail option */
-#define RANDOM_FILENAMES_FOR_MAIL_name      (NOT_RANDOM_FILENAMES_FOR_MAIL_name + 8)
-/** Compiled in flag settings for the random-filenames-for-mail option */
-#define RANDOM_FILENAMES_FOR_MAIL_FLAGS     (OPTST_DISABLED)
-
-/**
  *  outgoing-mail-base-dir option description:
  */
 /** Descriptive text for the outgoing-mail-base-dir option */
-#define OUTGOING_MAIL_BASE_DIR_DESC      (smtp_client_opt_strs+570)
+#define OUTGOING_MAIL_BASE_DIR_DESC      (smtp_client_opt_strs+466)
 /** Upper-cased name for the outgoing-mail-base-dir option */
-#define OUTGOING_MAIL_BASE_DIR_NAME      (smtp_client_opt_strs+624)
+#define OUTGOING_MAIL_BASE_DIR_NAME      (smtp_client_opt_strs+520)
 /** Name string for the outgoing-mail-base-dir option */
-#define OUTGOING_MAIL_BASE_DIR_name      (smtp_client_opt_strs+647)
+#define OUTGOING_MAIL_BASE_DIR_name      (smtp_client_opt_strs+543)
 /** The compiled in default value for the outgoing-mail-base-dir option argument */
-#define OUTGOING_MAIL_BASE_DIR_DFT_ARG   (smtp_client_opt_strs+670)
+#define OUTGOING_MAIL_BASE_DIR_DFT_ARG   (smtp_client_opt_strs+566)
 /** Compiled in flag settings for the outgoing-mail-base-dir option */
 #define OUTGOING_MAIL_BASE_DIR_FLAGS     (OPTST_DISABLED \
-        | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
-
-/**
- *  outgoing-mail-ready-to-send-dir option description:
- */
-/** Descriptive text for the outgoing-mail-ready-to-send-dir option */
-#define OUTGOING_MAIL_READY_TO_SEND_DIR_DESC      (smtp_client_opt_strs+678)
-/** Upper-cased name for the outgoing-mail-ready-to-send-dir option */
-#define OUTGOING_MAIL_READY_TO_SEND_DIR_NAME      (smtp_client_opt_strs+722)
-/** Name string for the outgoing-mail-ready-to-send-dir option */
-#define OUTGOING_MAIL_READY_TO_SEND_DIR_name      (smtp_client_opt_strs+754)
-/** The compiled in default value for the outgoing-mail-ready-to-send-dir option argument */
-#define OUTGOING_MAIL_READY_TO_SEND_DIR_DFT_ARG   (smtp_client_opt_strs+786)
-/** Compiled in flag settings for the outgoing-mail-ready-to-send-dir option */
-#define OUTGOING_MAIL_READY_TO_SEND_DIR_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
 
 /**
  *  outgoing-mail-process-dir option description:
  */
 /** Descriptive text for the outgoing-mail-process-dir option */
-#define OUTGOING_MAIL_PROCESS_DIR_DESC      (smtp_client_opt_strs+792)
+#define OUTGOING_MAIL_PROCESS_DIR_DESC      (smtp_client_opt_strs+574)
 /** Upper-cased name for the outgoing-mail-process-dir option */
-#define OUTGOING_MAIL_PROCESS_DIR_NAME      (smtp_client_opt_strs+844)
+#define OUTGOING_MAIL_PROCESS_DIR_NAME      (smtp_client_opt_strs+626)
 /** Name string for the outgoing-mail-process-dir option */
-#define OUTGOING_MAIL_PROCESS_DIR_name      (smtp_client_opt_strs+870)
+#define OUTGOING_MAIL_PROCESS_DIR_name      (smtp_client_opt_strs+652)
 /** The compiled in default value for the outgoing-mail-process-dir option argument */
-#define OUTGOING_MAIL_PROCESS_DIR_DFT_ARG   (smtp_client_opt_strs+896)
+#define OUTGOING_MAIL_PROCESS_DIR_DFT_ARG   (smtp_client_opt_strs+678)
 /** Compiled in flag settings for the outgoing-mail-process-dir option */
 #define OUTGOING_MAIL_PROCESS_DIR_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
@@ -245,13 +207,13 @@ static char const smtp_client_opt_strs[1183] =
  *  outgoing-mail-sent-dir option description:
  */
 /** Descriptive text for the outgoing-mail-sent-dir option */
-#define OUTGOING_MAIL_SENT_DIR_DESC      (smtp_client_opt_strs+903)
+#define OUTGOING_MAIL_SENT_DIR_DESC      (smtp_client_opt_strs+685)
 /** Upper-cased name for the outgoing-mail-sent-dir option */
-#define OUTGOING_MAIL_SENT_DIR_NAME      (smtp_client_opt_strs+932)
+#define OUTGOING_MAIL_SENT_DIR_NAME      (smtp_client_opt_strs+714)
 /** Name string for the outgoing-mail-sent-dir option */
-#define OUTGOING_MAIL_SENT_DIR_name      (smtp_client_opt_strs+955)
+#define OUTGOING_MAIL_SENT_DIR_name      (smtp_client_opt_strs+737)
 /** The compiled in default value for the outgoing-mail-sent-dir option argument */
-#define OUTGOING_MAIL_SENT_DIR_DFT_ARG   (smtp_client_opt_strs+978)
+#define OUTGOING_MAIL_SENT_DIR_DFT_ARG   (smtp_client_opt_strs+760)
 /** Compiled in flag settings for the outgoing-mail-sent-dir option */
 #define OUTGOING_MAIL_SENT_DIR_FLAGS     (OPTST_DISABLED \
         | OPTST_SET_ARGTYPE(OPARG_TYPE_STRING))
@@ -259,11 +221,11 @@ static char const smtp_client_opt_strs[1183] =
 /*
  *  Help/More_Help option descriptions:
  */
-#define HELP_DESC       (smtp_client_opt_strs+983)
-#define HELP_name       (smtp_client_opt_strs+1027)
+#define HELP_DESC       (smtp_client_opt_strs+765)
+#define HELP_name       (smtp_client_opt_strs+809)
 #ifdef HAVE_WORKING_FORK
-#define MORE_HELP_DESC  (smtp_client_opt_strs+1032)
-#define MORE_HELP_name  (smtp_client_opt_strs+1077)
+#define MORE_HELP_DESC  (smtp_client_opt_strs+814)
+#define MORE_HELP_name  (smtp_client_opt_strs+859)
 #define MORE_HELP_FLAGS (OPTST_IMM | OPTST_NO_INIT)
 #else
 #define MORE_HELP_DESC  HELP_DESC
@@ -360,20 +322,8 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ RANDOM_DIRECTORIES_FOR_WORKERS_DESC, RANDOM_DIRECTORIES_FOR_WORKERS_NAME, RANDOM_DIRECTORIES_FOR_WORKERS_name,
      /* disablement strs */ NOT_RANDOM_DIRECTORIES_FOR_WORKERS_name, NOT_RANDOM_DIRECTORIES_FOR_WORKERS_PFX },
 
-  {  /* entry idx, value */ 6, VALUE_OPT_RANDOM_FILENAMES_FOR_MAIL,
-     /* equiv idx, value */ 6, VALUE_OPT_RANDOM_FILENAMES_FOR_MAIL,
-     /* equivalenced to  */ NO_EQUIVALENT,
-     /* min, max, act ct */ 0, 1, 0,
-     /* opt state flags  */ RANDOM_FILENAMES_FOR_MAIL_FLAGS, 0,
-     /* last opt argumnt */ { NULL }, /* --random-filenames-for-mail */
-     /* arg list/cookie  */ NULL,
-     /* must/cannot opts */ NULL, NULL,
-     /* option proc      */ NULL,
-     /* desc, NAME, name */ RANDOM_FILENAMES_FOR_MAIL_DESC, RANDOM_FILENAMES_FOR_MAIL_NAME, RANDOM_FILENAMES_FOR_MAIL_name,
-     /* disablement strs */ NOT_RANDOM_FILENAMES_FOR_MAIL_name, NOT_RANDOM_FILENAMES_FOR_MAIL_PFX },
-
-  {  /* entry idx, value */ 7, VALUE_OPT_OUTGOING_MAIL_BASE_DIR,
-     /* equiv idx, value */ 7, VALUE_OPT_OUTGOING_MAIL_BASE_DIR,
+  {  /* entry idx, value */ 6, VALUE_OPT_OUTGOING_MAIL_BASE_DIR,
+     /* equiv idx, value */ 6, VALUE_OPT_OUTGOING_MAIL_BASE_DIR,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ OUTGOING_MAIL_BASE_DIR_FLAGS, 0,
@@ -384,20 +334,8 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ OUTGOING_MAIL_BASE_DIR_DESC, OUTGOING_MAIL_BASE_DIR_NAME, OUTGOING_MAIL_BASE_DIR_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 8, VALUE_OPT_OUTGOING_MAIL_READY_TO_SEND_DIR,
-     /* equiv idx, value */ 8, VALUE_OPT_OUTGOING_MAIL_READY_TO_SEND_DIR,
-     /* equivalenced to  */ NO_EQUIVALENT,
-     /* min, max, act ct */ 1, 1, 0,
-     /* opt state flags  */ OUTGOING_MAIL_READY_TO_SEND_DIR_FLAGS, 0,
-     /* last opt argumnt */ { OUTGOING_MAIL_READY_TO_SEND_DIR_DFT_ARG },
-     /* arg list/cookie  */ NULL,
-     /* must/cannot opts */ NULL, NULL,
-     /* option proc      */ NULL,
-     /* desc, NAME, name */ OUTGOING_MAIL_READY_TO_SEND_DIR_DESC, OUTGOING_MAIL_READY_TO_SEND_DIR_NAME, OUTGOING_MAIL_READY_TO_SEND_DIR_name,
-     /* disablement strs */ NULL, NULL },
-
-  {  /* entry idx, value */ 9, VALUE_OPT_OUTGOING_MAIL_PROCESS_DIR,
-     /* equiv idx, value */ 9, VALUE_OPT_OUTGOING_MAIL_PROCESS_DIR,
+  {  /* entry idx, value */ 7, VALUE_OPT_OUTGOING_MAIL_PROCESS_DIR,
+     /* equiv idx, value */ 7, VALUE_OPT_OUTGOING_MAIL_PROCESS_DIR,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ OUTGOING_MAIL_PROCESS_DIR_FLAGS, 0,
@@ -408,8 +346,8 @@ static tOptDesc optDesc[OPTION_CT] = {
      /* desc, NAME, name */ OUTGOING_MAIL_PROCESS_DIR_DESC, OUTGOING_MAIL_PROCESS_DIR_NAME, OUTGOING_MAIL_PROCESS_DIR_name,
      /* disablement strs */ NULL, NULL },
 
-  {  /* entry idx, value */ 10, VALUE_OPT_OUTGOING_MAIL_SENT_DIR,
-     /* equiv idx, value */ 10, VALUE_OPT_OUTGOING_MAIL_SENT_DIR,
+  {  /* entry idx, value */ 8, VALUE_OPT_OUTGOING_MAIL_SENT_DIR,
+     /* equiv idx, value */ 8, VALUE_OPT_OUTGOING_MAIL_SENT_DIR,
      /* equivalenced to  */ NO_EQUIVALENT,
      /* min, max, act ct */ 1, 1, 0,
      /* opt state flags  */ OUTGOING_MAIL_SENT_DIR_FLAGS, 0,
@@ -448,9 +386,9 @@ static tOptDesc optDesc[OPTION_CT] = {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Reference to the upper cased version of smtp_client. */
-#define zPROGNAME       (smtp_client_opt_strs+1087)
+#define zPROGNAME       (smtp_client_opt_strs+869)
 /** Reference to the title line for smtp_client usage. */
-#define zUsageTitle     (smtp_client_opt_strs+1099)
+#define zUsageTitle     (smtp_client_opt_strs+881)
 /** There is no smtp_client configuration file. */
 #define zRcName         NULL
 /** There are no directories to search for smtp_client config files. */
@@ -499,30 +437,6 @@ doUsageOpt(tOptions * opts, tOptDesc * od)
     (void)opts;
     (void)od;
 }
-/* extracted from optmain.tlib near line 46 */
-
-
-extern void optionPutShell(tOptions*);
-
-/**
- * Generated main procedure.  This will emit text that a Bourne shell can
- * process to handle its command line arguments.
- *
- * @param[in] argc argument count
- * @param[in] argv argument vector
- * @returns program exit code
- */
-int
-main(int argc, char ** argv)
-{
-    int res = SMTP_CLIENT_EXIT_SUCCESS;
-    (void)optionProcess(&smtp_clientOptions, argc, argv);
-    optionPutShell(&smtp_clientOptions);
-    res = ferror(stdout);
-    if (res != 0)
-        fputs("output error writing to stdout\n", stderr);
-    return res;
-}
 /* extracted from optmain.tlib near line 1250 */
 
 /**
@@ -567,8 +481,7 @@ tOptions smtp_clientOptions = {
     + OPTPROC_SHORTOPT
     + OPTPROC_LONGOPT
     + OPTPROC_NEGATIONS
-    + OPTPROC_NO_ARGS
-    + OPTPROC_SHELL_OUTPUT ),
+    + OPTPROC_NO_ARGS ),
     0, NULL,                    /* current option index, current option */
     NULL,         NULL,         zPROGNAME,
     zRcName,      zCopyright,   zLicenseDescrip,
@@ -586,7 +499,7 @@ tOptions smtp_clientOptions = {
       NO_EQUIVALENT, /* '-#' option index */
       NO_EQUIVALENT /* index of default opt */
     },
-    13 /* full option count */, 11 /* user option count */,
+    11 /* full option count */, 9 /* user option count */,
     smtp_client_full_usage, smtp_client_short_usage,
     NULL, NULL,
     PKGDATADIR, smtp_client_packager_info
@@ -739,13 +652,7 @@ static void bogus_function(void) {
   puts(_("Dont use random directories for worker processes"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
-  puts(_("Dont use random filenames for incoming mail"));
-
-  /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("directory to scan for new mail (relative to root dir)"));
-
-  /* referenced via smtp_clientOptions.pOptDesc->pzText */
-  puts(_("directory for processed mails from base dir"));
 
   /* referenced via smtp_clientOptions.pOptDesc->pzText */
   puts(_("directory for processes to get mail from (MX-based)"));

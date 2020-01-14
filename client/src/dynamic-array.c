@@ -122,23 +122,20 @@ int dynamic_array_pop_item(struct dynamic_array* array, char* item)
 
 	if (array->current_number_of_items > 0)
 	{
-		if (*item == NULL)
+		item = (char*)malloc(array->element_size);
+		if (item == NULL)
 		{
-			*item = (char*)malloc(array->element_size);
-			if (*item == NULL)
-			{
-				perror("Malloc failed");
-				return -2;
-			}
+			perror("Malloc failed");
+			return -2;
 		}
 		
 		uint64_t offset = (array->current_number_of_items-1) * array->element_size;
-		memcpy(*item, array->data + offset, array->element_size);
+		memcpy(item, array->data + offset, array->element_size);
 		array->current_number_of_items--;
 	}
 	else
 	{
-		*item = NULL;
+		item = NULL;
 	}
 	return 0;
 }

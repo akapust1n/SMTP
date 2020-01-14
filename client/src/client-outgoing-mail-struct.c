@@ -1,4 +1,4 @@
-#include "outgoing-mail-struct.h"
+#include "client-outgoing-mail-struct.h"
 
 char * extract_domain_from_file(const char* path)
 {
@@ -99,29 +99,26 @@ uint32_t outgoing_mail_free_node(struct hashtable_node_list *node_list, void *ke
 }
 
 
-struct hashtable *create_outgoing_mail_dictionary_from_directory(const char *path)
+int outgoing_mail_dictionary_add_files_from_directory(struct hashtable *hashtable, const char *path)
 {
-	struct hashtable *hashtable = hashtable_create(&string_hash_function, &string_compare_function,
-		&outgoing_mail_create_node, &outgoing_mail_free_node, HASHTABLE_SIZE_LIMIT, HASHTABLE_DEFAULT_SIZE,
-		HASHTABLE_LIST_LIMIT);
 	struct linked_list *dir_listing = NULL;
 	get_directory_listing(path, dir_listing);
 	
 	for (uint32_t index = 0; index < dir_listing->length; index++)
 	{
-		char *file_path = (char *)linked_list_get(dir_listing, index);
-		char * domain = extract_domain_from_file(file_path);
+		char *file_path = (char *) linked_list_get(dir_listing, index);
+		char *domain = extract_domain_from_file(file_path);
 		hashtable_put(hashtable, domain, strlen(domain), file_path, strlen(file_path));
 	}
 	return hashtable;
 }
 
-void init_outgoing_mail_directory(const char *path)
+struct hashtable * outgoing_mail_dictionary_create()
 {
-
+	return hashtable_create(&string_hash_function, &string_compare_function,
+			&outgoing_mail_create_node, &outgoing_mail_free_node, HASHTABLE_SIZE_LIMIT, HASHTABLE_DEFAULT_SIZE,
+			HASHTABLE_LIST_LIMIT);
 }
-
-struct linked_list *get_mail_struct_by_domain(const char *domain)
 {
 	return NULL;
 }

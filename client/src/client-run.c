@@ -15,6 +15,8 @@ int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_clien
 int spawn_logger_process(struct smtp_client_context* main_ctx);
 int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_node_list *list);
 
+bool main_process_running = true;
+
 int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_client_worker_context* worker_ctx)
 {
         int sockets[2];
@@ -31,8 +33,6 @@ int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_clien
         worker_ctx->master_socket = sockets[0];
         worker_ctx->worker_socket = sockets[1];
         worker_ctx->logger_socket = main_ctx->logger_socket;
-        worker_ctx->disable_random_process_dir = main_ctx->disable_random_process_dir;
-        worker_ctx->disable_random_file_names = main_ctx->disable_random_file_names;
         worker_ctx->mail_send_timeout = main_ctx->mail_send_timeout;
         worker_ctx->mail_retry_wait_time = main_ctx->mail_retry_wait_time;
         worker_ctx->is_running = true;
@@ -44,6 +44,7 @@ int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_clien
         if (pid == 0)
         {
                 worker_process_run(worker_ctx);
+		logger_socket = sockets[0];
         }
 
         return 0;
@@ -77,12 +78,10 @@ int spawn_logger_process(struct smtp_client_context* main_ctx)
 
 int main_loop(struct smtp_client_context* ctx)
 {
-        bool running = true;
-        
         log_print("Starting to look for new mail to send in maildir");
         struct hashtable *directory_dict = outgoing_mail_dictionary_create();
         
-        while (running)
+        while (main_process_running)
         {
                 scan_dir_for_new_mail(ctx, directory_dict);
                 sleep(30);
@@ -158,11 +157,9 @@ int stop_logger_process(struct smtp_client_context* ctx)
         return 0;
 }
 
-int run(const char *root_dir, const char *outmail_dir, const char *ready_dir,
-        const char *process_dir, const char *sent_dir, const char *log_file_name,
-        unsigned int mail_send_timeout, unsigned int mail_retry_wait_time,
-        unsigned char number_of_workers, bool disable_random_process_dir,
-        bool disable_random_file_names)
+int run(const char *root_dir, const char *outmail_dir, const char *process_dir, const char *sent_dir,
+        const char *log_file_name, unsigned int mail_send_timeout, unsigned int mail_retry_wait_time,
+        unsigned char number_of_workers)
 {
 	int result = 0;
         struct smtp_client_context ctx;
@@ -175,11 +172,6 @@ int run(const char *root_dir, const char *outmail_dir, const char *ready_dir,
 	strncpy(outmail_path, root_dir, 0x100);
 	strncat(outmail_path, outmail_dir, 0x100 - root_dir_len);
         ctx.outmail_dir = outmail_path;
-
-	char *ready_path = (char*)malloc(0x100);
-	strncpy(ready_path, root_dir, 0x100);
-	strncat(ready_path, ready_dir, 0x100 - root_dir_len);
-        ctx.ready_dir = ready_path;
 
 	char *process_path = (char*)malloc(0x100);
 	strncpy(process_path, root_dir, 0x100);
@@ -196,8 +188,6 @@ int run(const char *root_dir, const char *outmail_dir, const char *ready_dir,
 	ctx.mail_send_timeout = mail_send_timeout;
 	ctx.mail_retry_wait_time = mail_retry_wait_time;
 	ctx.number_of_workers = number_of_workers;
-	ctx.disable_random_process_dir = disable_random_process_dir;
-	ctx.disable_random_file_names = disable_random_file_names;
 	ctx.worker_ctx = (struct smtp_client_worker_context*)malloc(sizeof(struct smtp_client_worker_context) * number_of_workers);
 	ctx.current_worker = 0;
 	ctx.number_of_mail_sent = 0;
@@ -230,7 +220,6 @@ int run(const char *root_dir, const char *outmail_dir, const char *ready_dir,
 
         free(ctx.worker_ctx);
         free(ctx.outmail_dir);
-	free(ctx.ready_dir);
 	free(ctx.process_dir);
         free(ctx.sent_dir);
 

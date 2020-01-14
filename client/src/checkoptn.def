@@ -3,7 +3,7 @@ prog-name = smtp_client;
 prog-title = "SMTP Client";
 long-opts;
 
-main = { main-type = shell-process; };
+// main = { main-type = shell-process; };
 
 flag = {
 	name = root-dir;
@@ -67,13 +67,6 @@ flag = {
 };
 
 flag = {
-   name = random-filenames-for-mail;
-   disable   = disable;
-   descrip = "Dont use random filenames for incoming mail";
-   doc = 'Dont use random filenames for incoming mail';
-};
-
-flag = {
    name = outgoing-mail-base-dir;
    arg-type = string;
    arg-default = "outmail";
@@ -81,16 +74,6 @@ flag = {
    min = 1;
    descrip   = "directory to scan for new mail (relative to root dir)";
    doc = 'directory to scan for new mail (relative to root dir)';
-};
-
-flag = {
-   name = outgoing-mail-ready-to-send-dir;
-   arg-type = string;
-   arg-default = "ready";
-   max = 1;
-   min = 1;
-   descrip   = "directory for processed mails from base dir";
-   doc = 'directory for processed mails from base dir';
 };
 
 flag = {
