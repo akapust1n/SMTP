@@ -19,6 +19,8 @@ struct smtp_client_context
     int logger_socket;
     pid_t logger_pid;
     struct smtp_client_worker_context* worker_ctx;
+    fd_set worker_task_fds;
+    char* name;
 };
 
 struct smtp_client_worker_context
@@ -35,6 +37,7 @@ struct smtp_client_worker_context
     int worker_socket;
     int logger_socket;
     bool is_running;
+    char *name;
 };
 
 #endif
