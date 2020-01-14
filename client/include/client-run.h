@@ -21,10 +21,6 @@
 #include "client-context.h"
 #include "smtp_sockets.h"
 
-
-#define CLIENT_TASK_DISPATCH_TIMEOUT_SECONDS 360
-#define CLIENT_TASK_DISPATCH_TIMEOUT_USECONDS 0
-
 int run(const char *root_dir, const char *outmail_dir, const char *process_dir, const char *sent_dir,
         const char *log_file_name, uint32_t mail_send_timeout, uint32_t mail_retry_wait_time,
         uint32_t number_of_workers);
