@@ -3,6 +3,8 @@
 
 #include <wait.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <sys/select.h>
 
 struct smtp_client_context
 {
@@ -39,6 +41,9 @@ struct smtp_client_worker_context
     bool is_running;
     char *name;
 };
+
+#define MAIN_PROCESS_NAME "main"
+#define WORKER_PROCESS_NAME "worker[%d]"
 
 #endif
 

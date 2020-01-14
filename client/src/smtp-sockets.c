@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <client-logger.h>
 #include <errno.h>
+#include <stdio.h>
 #include "smtp_sockets.h"
 
 
@@ -22,7 +23,7 @@ int create_local_socket_pair(int *out_sockets)
 	int result = socketpair(AF_LOCAL, SOCK_DGRAM, 0, out_sockets);
 	if (result != 0)
 	{
-		log_print("Error creating socket pair: %d", result);
+		perror("Error creating socket pair");
 		return -1;
 	}
 	return 0;

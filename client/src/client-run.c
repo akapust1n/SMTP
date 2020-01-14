@@ -92,7 +92,7 @@ int initialize_client_fd_set(struct smtp_client_context* ctx)
         socket_set_nonblocking(socket, true);
         FD_SET(socket, &write_sd);
     }
-    memccpy(&ctx->worker_task_fds, &write_sd, sizeof(write_sd));
+    memcpy(&ctx->worker_task_fds, &write_sd, sizeof(write_sd));
 }
 
 int initialize_directories(struct smtp_client_context *ctx)
@@ -153,20 +153,20 @@ int main_loop(struct smtp_client_context* ctx)
 
 int scan_dir_for_new_mail(struct smtp_client_context *ctx, struct hashtable *directory_dict)
 {
-	log_print(ctx->name, "Start scanning for new mail");
+    log_print(ctx->name, "Start scanning for new mail");
 
-	outgoing_mail_dictionary_add_files_from_directory(directory_dict, ctx->outmail_dir);
-	for (int i = 0; i < directory_dict->current_size; i++)
+    outgoing_mail_dictionary_add_files_from_directory(directory_dict, ctx->outmail_dir);
+    for (int i = 0; i < directory_dict->current_size; i++)
+    {
+	if (directory_dict->data[i].list_length == 0)
 	{
-		if (directory_dict->data[i].list_length == 0)
-		{
-			continue;
-		}
-		log_print(ctx->name, "Found mail for %s domain", directory_dict->data[i].list->key);
-		
-		dispatch_task_to_worker(ctx, directory_dict->data);
+            continue;
 	}
-        log_print(ctx->name, "Scan finished, going to sleep");
+	log_print(ctx->name, "Found mail for %s domain", directory_dict->data[i].list->key);
+		
+	dispatch_task_to_worker(ctx, directory_dict->data);
+    }
+    log_print(ctx->name, "Scan finished, going to sleep");
 }
 
 char *generate_filename(struct smtp_client_context* ctx, const char *domain)
@@ -191,7 +191,7 @@ int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_no
     int write_socket;
     log_print(ctx->name, "Waiting on select()...");
 
-    write_socket = select(ctx->number_of_workers + 1, NULL, ctx->worker_task_fds, NULL, NULL);
+    write_socket = select(ctx->number_of_workers + 1, NULL, &ctx->worker_task_fds, NULL, NULL);
     if (write_socket < 0)
     {
         log_print(ctx->name, "select() failed");
@@ -236,7 +236,7 @@ int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_no
 
 int stop_all_worker_processes(struct smtp_client_context* ctx)
 {
-    log_print("Stopping all workers");
+    log_print(ctx->name, "Stopping all workers");
 
     struct client_process_command command =
     {
@@ -256,7 +256,7 @@ int stop_all_worker_processes(struct smtp_client_context* ctx)
 
 int stop_logger_process(struct smtp_client_context* ctx)
 {
-    log_print("Stopping logger thread");
+    log_print(ctx->name, "Stopping logger thread");
     log_process_send_terminate();
     int status;
     waitpid(ctx->logger_pid, &status, 0);
@@ -298,30 +298,31 @@ int run(const char *root_dir, const char *outmail_dir, const char *process_dir, 
     ctx.current_worker = 0;
     ctx.number_of_mail_sent = 0;
 
-   spawn_logger_process(&ctx);
+    ctx.name = MAIN_PROCESS_NAME;
+    spawn_logger_process(&ctx);
 
-    log_print("Starting SMTP client");
-    log_print("Number of worker processes: %d");
+    log_print(ctx.name, "Starting SMTP client");
+    log_print(ctx.name, "Number of worker processes: %d");
 
     //spawn worker processes
     for (unsigned int i = 0; i < number_of_workers; i++)
     {
         if (spawn_worker_process(&ctx, ctx.worker_ctx + i) != 0)
         {
-            log_print("Spawning worker process failed (id=%d)", i);
+            log_print(ctx.name, "Spawning worker process failed (id=%d)", i);
             return -1;
         }
     }
 
-    log_print("All worker processes started");
+    log_print(ctx.name, "All worker processes started");
 
-    log_print("Start main loop");
+    log_print(ctx.name, "Start main loop");
     main_loop(&ctx);
-    log_print("Quitted main loop");
+    log_print(ctx.name, "Quitted main loop");
 
-    log_print("Stopping all workers");
+    log_print(ctx.name, "Stopping all workers");
     stop_all_worker_processes(&ctx);
-    log_print("Stopping logger");
+    log_print(ctx.name, "Stopping logger");
     stop_logger_process(&ctx);
 
     free(ctx.worker_ctx);
