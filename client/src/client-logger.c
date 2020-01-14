@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <client-worker-commands.h>
+#include <fcntl.h>
 #include "client-logger.h"
 #include "client-run.h"
 
@@ -66,6 +67,47 @@ int log_process_send_terminate()
 
 int log_process_run(int socket, const char *logfile)
 {
-    return 0;
+    char *buffer = (char *)malloc(LOGGER_BUFFER_SIZE);
+    int log = open(logfile, O_CREAT | O_WRONLY | O_APPEND, 0644);
+    struct client_process_command command;
+    int len = 0;
+
+    while(true)
+    {
+        read_command(socket, &command);
+        if (command.type == SMTP_CLIENT_PROCESS_STOP)
+        {
+            break;
+        }
+        else if (command.type == SMTP_CLIENT_LOG_PRINT)
+        {
+            if (read(socket, &len, sizeof(len)) > 0)
+            {
+                ssize_t bytes_read = 0;
+                while (len > 0)
+                {
+                    if (len < LOGGER_BUFFER_SIZE)
+                    {
+                        bytes_read = read(socket, buffer, len);
+                    }
+                    else
+                    {
+                        bytes_read = read(socket, buffer, LOGGER_BUFFER_SIZE);
+                    }
+
+                    if (bytes_read > 0)
+                    {
+                        len -= bytes_read;
+                        write(log, buffer, bytes_read);
+                    }
+                }
+                write(log, "\n", 1);
+            }
+        }
+    }
+
+    close(log);
+    free(buffer);
+    exit(0);
 }
 
