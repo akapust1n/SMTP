@@ -16,7 +16,6 @@ struct smtp_client_context
     uint32_t mail_send_timeout;
     uint32_t mail_retry_wait_time;
     uint32_t number_of_workers;
-    uint32_t current_worker;
     uint32_t number_of_mail_sent;
     int logger_socket;
     pid_t logger_pid;

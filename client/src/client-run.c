@@ -295,7 +295,6 @@ int run(const char *root_dir, const char *outmail_dir, const char *process_dir, 
     ctx.mail_retry_wait_time = mail_retry_wait_time;
     ctx.number_of_workers = number_of_workers;
     ctx.worker_ctx = (struct smtp_client_worker_context*)malloc(sizeof(struct smtp_client_worker_context) * number_of_workers);
-    ctx.current_worker = 0;
     ctx.number_of_mail_sent = 0;
 
     ctx.name = MAIN_PROCESS_NAME;
