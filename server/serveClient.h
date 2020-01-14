@@ -8,17 +8,10 @@
 #include <string>
 #include <vector>
 
-inline int handleHelo(Client& client, const sockaddr_in& address)
-{
-    if (client.state == SC_INIT) {
-        std::string outputMsg = code220;
-        if (mySend(client, outputMsg.c_str())) {
-            client.state = SC_WAIT;
-        }
-        return -2;
-    }
-    return -1;
-}
+int handleHelo(Client& client, const sockaddr_in& address);
+int handleEhlo(Client& client, const sockaddr_in& address);
+int handleMail(Client& client, const sockaddr_in& address);
+int handleRCPT(Client& client, const sockaddr_in& address);
 
 inline bool handleClient(int clientId, ClientsMap& clients)
 {
@@ -54,6 +47,12 @@ inline bool handleClient(int clientId, ClientsMap& clients)
         if (!strcmp(cmd, "HELO")) {
             // начальное приветствие
             errCode = handleHelo(client, address);
+        } else if (!strcmp(cmd, "EHLO")) {
+            errCode = handleEhlo(client, address);
+        } else if (!strcmp(cmd, "MAIL")) {
+            errCode = handleMail(client, address);
+        } else if (!strcmp(cmd, "RCPT")) {
+            errCode = handleRCPT(client, address);
         }
     }
 }

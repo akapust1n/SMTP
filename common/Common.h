@@ -15,15 +15,17 @@ constexpr const int serverPort = 10000;
 
 constexpr int serverBufferSize = 1024;
 constexpr const char code220[] = "220";
+constexpr const char code250[] = "250";
+constexpr const char code451[] = "451";
 const int bufsize = 1024;
 constexpr const char serverDomain[] = "myserver.com";
 struct msg {
     std::vector<std::string> to;
     std::string from;
     std::string body;
-    int body_length;
-    int recepients_num;
 };
+
+constexpr const int maxRecepients = 5;
 
 struct Client {
     Client() {}
@@ -38,7 +40,6 @@ struct Client {
         buffer.reset(new char[1024]);
         if (needs_message) {
             message.reset(new msg);
-            message->recepients_num = 0;
         }
     }
     int fd;
