@@ -18,23 +18,7 @@
 #include "client-worker-task.h"
 #include <sys/wait.h> 
 #include <sys/types.h>
-
-struct smtp_client_context
-{
-	const char *root_dir;
-	char *outmail_dir;
-	char *process_dir;
-	char *sent_dir;
-	const char *log_file_name;
-	uint32_t mail_send_timeout;
-	uint32_t mail_retry_wait_time;
-	uint32_t number_of_workers;
-	uint32_t current_worker;
-	uint32_t number_of_mail_sent;
-	int logger_socket;
-	pid_t logger_pid;
-	struct smtp_client_worker_context* worker_ctx;
-};
+#include "client-context.h"
 
 int run(const char *root_dir, const char *outmail_dir, const char *process_dir, const char *sent_dir,
         const char *log_file_name, unsigned int mail_send_timeout, unsigned int mail_retry_wait_time,

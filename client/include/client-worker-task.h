@@ -5,17 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum task_commands
-{
-	SMTP_CLIENT_TASK,
-	SMTP_CLIENT_PROCESS_STOP
-};
-
-struct client_process_command
-{
-	enum task_commands type;
-};
-
 enum task_state
 {
 	waiting_in_queue,

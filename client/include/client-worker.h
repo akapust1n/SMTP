@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <sys/socket.h>
 #include "client-fsm.h"
+#include "client-context.h"
 
 struct smtp_client_worker_context
 {

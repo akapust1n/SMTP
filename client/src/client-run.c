@@ -4,6 +4,7 @@
  *  В этом файле описана главная функция программы.
  */
 
+#include <client-worker-commands.h>
 #include "client-run.h"
 #include "client-logger.h"
 #include "client-worker.h"
