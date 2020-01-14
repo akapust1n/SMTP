@@ -19,5 +19,6 @@ struct client_process_command
 
 int send_terminate_to_worker(struct smtp_client_worker_context *worker_ctx);
 int send_task_to_worker(struct smtp_client_worker_context *worker_ctx, const void *task, size_t task_size);
+int read_command(int socket, struct client_process_command *out_command);
 
 #endif

@@ -24,3 +24,9 @@ int send_task_to_worker(struct smtp_client_worker_context *worker_ctx, const voi
     send(worker_ctx->master_socket, &task_size, sizeof(task_size), 0);
     send(worker_ctx->master_socket, task, task_size, 0);
 }
+
+int read_command(int socket, struct client_process_command *out_command)
+{
+    recv(socket, out_command, sizeof(struct client_process_command), 0);
+    return 0;
+}
