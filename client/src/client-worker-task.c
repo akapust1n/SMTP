@@ -33,7 +33,7 @@ void add_task(struct linked_list *tasks, const char* domain)
 	linked_list_push(tasks, &new_task, sizeof(new_task));
 }
 
-void remove_all_finished_tasks(struct linked_list *tasks)
+void remove_all_finished_tasks_from_queue(struct linked_list *tasks)
 {
 	struct linked_list_node *current_node = tasks->head;
 	uint32_t index = 0;

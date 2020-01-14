@@ -1,6 +1,3 @@
-#include <client-worker-task.h>
-#include <hashtable.h>
-#include <client-outgoing-mail-struct.h>
 #include "client-worker.h"
 
 static struct response_to_event response_to_event_table[] =
@@ -85,8 +82,8 @@ int worker_process_run(struct smtp_client_worker_context* ctx)
                 while(current_task_node != NULL)
                 {
                     struct worker_task * current_task = get_task_from_node(current_task_node);
-                    int server_socket = hashtable_get(server_sockets,
-                                                      current_task->domain.strlen(current_task->domain));
+                    int server_socket = (int)hashtable_get(server_sockets,
+                                                      current_task->domain, strlen(current_task->domain));
                     if (current_task->expect_reads_from_socket)
                     {
                         if (FD_ISSET(server_socket, &current_read_fds))

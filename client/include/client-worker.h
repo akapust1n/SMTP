@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include "client-logger.h"
 #include "client-re.h"
+#include <client-worker-task.h>
+#include <hashtable.h>
+#include <client-outgoing-mail-struct.h>
 
 
 struct response_to_event

@@ -18,7 +18,7 @@ struct mail_struct
 	char *message_body;
 };
 
-int load_file_to_mail_struct(const char* path, struct mail_struct *out_mail_struct)
+int load_file_to_mail_struct(const char* path, struct mail_struct *out_mail_struct);
 int free_mail_struct(struct mail_struct *mail_struct);
 
 #endif

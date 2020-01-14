@@ -37,6 +37,7 @@
 #define DEFINE_FSM
 #include "client-fsm.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 /*
  *  Do not make changes to this file, except between the START/END

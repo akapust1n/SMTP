@@ -19,7 +19,7 @@ int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_no
 int initialize_client_fd_set(struct smtp_client_context* ctx);
 int initialize_directories(struct smtp_client_context* ctx);
 
-bool main_process_running = true;
+static bool main_process_running;
 
 int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_client_worker_context* worker_ctx)
 {
@@ -287,6 +287,7 @@ int run(const char *root_dir, const char *outmail_dir, const char *process_dir, 
         const char *log_file_name, uint32_t mail_send_timeout, uint32_t mail_retry_wait_time,
         uint32_t number_of_workers)
 {
+    main_process_running = true;
     int result = 0;
     struct smtp_client_context ctx;
 
