@@ -10,20 +10,14 @@ bool server_response_parser_try_to_parse_message(char *message, struct smtp_serv
 static struct smtp_server_response_re server_responses[] =
 {
     (struct smtp_server_response_re){SERVER_CONNECT, "CONNECT RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_CONNECT, NULL},
-    (struct smtp_server_response_re){SERVER_HELLO_OK, "HELLO RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_HELLO, NULL},
-    (struct smtp_server_response_re){SERVER_HELLO_OK_MULTILINE, "HELLO MULTILINE RESPONSE",
-                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_HELLO_LINES, NULL},
-    (struct smtp_server_response_re){SERVER_MAIL_OK, "MAIL TO RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_MAILTO, NULL},
-    (struct smtp_server_response_re){SERVER_RCPT_OK, "RCPT FROM RESPONSE",
-                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_RCPTFROM, NULL},
-    (struct smtp_server_response_re){SERVER_DATA_OK, "DATA RESPONSE",
-                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_READY_FOR_MESSAGE_BODY, NULL},
-    (struct smtp_server_response_re){SERVER_DATA_RECEIVED_OK, "DATA RECEIVED RESPONSE",
-                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_MESSAGE_BODY_RECIEVED, NULL},
-    (struct smtp_server_response_re){SERVER_QUIT_OK, "QUIT RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_BYE, NULL},
+    (struct smtp_server_response_re){SERVER_EHLO_OK_MULTILINE, "HELLO MULTILINE RESPONSE",
+                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_EHLO_LINES, NULL},
     (struct smtp_server_response_re){SERVER_EHLO_NOT_SUPPORTED, "EHLO NOT SUPPORTED RESPONSE",
                                      (PCRE2_SPTR)RE_SERVER_RESPONSE_EHLO_NOT_SUPPORTED, NULL},
-    (struct smtp_server_response_re){SERVER_RSET_OK, "RSET RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_RSET, NULL},
+    (struct smtp_server_response_re){SERVER_DATA_OK, "DATA RESPONSE",
+                                     (PCRE2_SPTR)RE_SERVER_RESPONSE_READY_FOR_MESSAGE_BODY, NULL},
+    (struct smtp_server_response_re){SERVER_QUIT_OK, "QUIT RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_BYE, NULL},
+    (struct smtp_server_response_re){SERVER_OK, "OK RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_OK, NULL},
     (struct smtp_server_response_re){SERVER_ERROR, "ERROR RESPONSE", (PCRE2_SPTR)RE_SERVER_RESPONSE_ERROR, NULL}
 };
 
@@ -62,7 +56,7 @@ bool server_response_parser_try_to_parse_message(char *message, struct smtp_serv
     return true;
 }
 
-struct smtp_server_response_match server_response_parse_message(char *message)
+struct smtp_server_response_match server_response_parse_message(char *message, uint32_t last_match_position)
 {
     struct smtp_server_response_match result =
     {
@@ -72,9 +66,10 @@ struct smtp_server_response_match server_response_parse_message(char *message)
 
     size_t n = sizeof(server_responses) / sizeof(server_responses[0]);
 
-    for (size_t i = 0; i < n; i++)
+    // A workaround for state handling
+    for (size_t i = last_match_position + 1; i < n + last_match_position + 1; i++)
     {
-        struct smtp_server_response_re *cmd = server_responses + i;
+        struct smtp_server_response_re *cmd = server_responses + (i % n);
         bool matched = server_response_parser_try_to_parse_message(message, cmd, &result);
         if (matched)
         {
