@@ -9,22 +9,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-enum mail_state
-{
-	waiting_to_be_staged,
-	staged_to_send,
-	sending,
-	successfuly_sent,
-	error
-};
-
-struct outgoing_mail_struct
-{
-	struct mail_file_descriptor* mail_fd;
-	enum mail_state state;
-	unsigned int current_send_attempt_count;
-};
-
 static uint32_t crc32_table[] = {
       0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
       0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
@@ -84,9 +68,6 @@ static uint32_t crc32_table[] = {
 
 int outgoing_mail_dictionary_add_files_from_directory(struct hashtable *hashtable, const char *path);
 struct hashtable *outgoing_mail_dictionary_create();
-
-void init_outgoing_mail_directory(const char *path);
-//struct linked_list *get_mail_struct_by_domain(const char *domain);
 uint32_t outgoing_mail_free_node(struct hashtable_node_list *node_list, void *key, uint32_t key_size);
 
 #endif

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/select.h>
+#include <linked-list.h>
 
 struct smtp_client_context
 {
@@ -26,11 +27,8 @@ struct smtp_client_context
 
 struct smtp_client_worker_context
 {
-    const char *root_dir;
-    const char *outmail_dir;
     const char *process_dir;
     const char *sent_dir;
-    const char *log_file;
     uint32_t mail_send_timeout;
     uint32_t mail_retry_wait_time;
     pid_t pid;
@@ -39,7 +37,7 @@ struct smtp_client_worker_context
     int logger_socket;
     bool is_running;
     char *name;
-    te_client_fsm_state current_state;
+    struct linked_list *task_queue;
 };
 
 #define MAIN_PROCESS_NAME "main"

@@ -31,7 +31,6 @@ int spawn_worker_process(struct smtp_client_context* main_ctx, struct smtp_clien
         return -1;
     }
 
-    worker_ctx->root_dir = main_ctx->root_dir;
     worker_ctx->process_dir = main_ctx->process_dir;
     worker_ctx->sent_dir = main_ctx->sent_dir;
     worker_ctx->master_socket = sockets[0];
@@ -188,18 +187,39 @@ char *generate_filename(struct smtp_client_context* ctx, const char *domain)
 
 int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_node_list *list)
 {
-    int write_socket;
     log_print(ctx->name, "Waiting on select()...");
+    fd_set fds;
+    memcpy(&fds, &ctx->worker_task_fds, sizeof(ctx->worker_task_fds));
 
-    write_socket = select(ctx->number_of_workers + 1, NULL, &ctx->worker_task_fds, NULL, NULL);
-    if (write_socket < 0)
+    int result = select(ctx->number_of_workers + 1, NULL, &fds, NULL, NULL);
+    if (result < 0)
     {
         log_print(ctx->name, "select() failed");
         return -1;
     }
 
     char *path = NULL;
-    struct smtp_client_worker_context *worker_ctx = ctx->worker_ctx + write_socket;
+    struct smtp_client_worker_context *worker_ctx = NULL;
+
+    for (uint32_t i = 0; i < ctx->number_of_workers; i++)
+    {
+        worker_ctx = ctx->worker_ctx + i;
+
+        if (FD_ISSET(worker_ctx->master_socket, &fds))
+        {
+            break;
+        }
+        else
+        {
+            worker_ctx = NULL;
+        }
+    }
+    if (worker_ctx == NULL)
+    {
+        log_print(ctx->name, "unable to get free worker after select()");
+        return -1;
+    }
+
     int len = snprintf(path, 0, "%s/%d", ctx->process_dir, worker_ctx->pid);
 
     path = (char *)malloc(len + 1);

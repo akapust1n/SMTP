@@ -5,7 +5,7 @@
 #include <wait.h>
 #include "client-context.h"
 
-enum task_commands
+enum process_control_commands
 {
     SMTP_CLIENT_TASK,
     SMTP_CLIENT_LOG_PRINT,
@@ -14,7 +14,7 @@ enum task_commands
 
 struct client_process_command
 {
-    enum task_commands type;
+    enum process_control_commands type;
 };
 
 int send_terminate_to_worker(struct smtp_client_worker_context *worker_ctx);
