@@ -5,6 +5,7 @@
  */
 
 #include <client-worker-commands.h>
+#include <time.h>
 #include "client-run.h"
 #include "client-logger.h"
 #include "client-worker.h"
@@ -96,6 +97,7 @@ int initialize_client_fd_set(struct smtp_client_context* ctx)
 
 int initialize_directories(struct smtp_client_context *ctx)
 {
+    log_print(ctx->name, "Checking if directory '%s' exists", ctx->root_dir);
     if (!check_if_directory_exists(ctx->root_dir))
     {
         if(!create_path(ctx->root_dir, 0666))
@@ -105,22 +107,31 @@ int initialize_directories(struct smtp_client_context *ctx)
     }
     if (!check_if_directory_exists(ctx->process_dir))
     {
+	log_print(ctx->name, "Creating '%s' directory", ctx->root_dir);
         if(!create_path(ctx->process_dir, 0666))
         {
-	    log_print(ctx->name, "Unable to create directory %s", ctx->process_dir);
+	    log_print(ctx->name, "Unable to create directory '%s'", ctx->process_dir);
         }
     }
+    log_print(ctx->name, "Checking if directory '%s' exists", ctx->process_dir);
     if (!check_if_directory_exists(ctx->sent_dir))
     {
+	log_print(ctx->name, "Creating '%s' directory", ctx->process_dir);
         if(!create_path(ctx->sent_dir, 0666))
         {
-            log_print(ctx->name, "Unable to create directory %s", ctx->sent_dir);
+            log_print(ctx->name, "Unable to create directory '%s'", ctx->sent_dir);
         }
     }
 
     for (uint32_t i = 0; i < ctx->number_of_workers; i++)
     {
-        
+        char buffer[20];
+        struct smtp_client_worker_context *worker_ctx = ctx->worker_ctx + i;
+
+        log_print(ctx->name, "Creating directory for pid: %d", worker_ctx->pid);
+
+        snprintf(buffer, 20, "%d", worker_ctx->pid);
+        create_subdirectory(ctx->process_dir, buffer, 0666);
     }
 }
 
@@ -158,6 +169,23 @@ int scan_dir_for_new_mail(struct smtp_client_context *ctx, struct hashtable *dir
         log_print(ctx->name, "Scan finished, going to sleep");
 }
 
+char *generate_filename(struct smtp_client_context* ctx, const char *domain)
+{
+    char *result = NULL;
+    char current_time_string[32];
+    time_t current_time = time(NULL);
+
+    strftime(current_time_string, 32, "%Y%m%d%H%M%S", localtime(&current_time));
+
+    int len = snprintf(result, 0, "%s%s%d", current_time_string, domain, ctx->number_of_mail_sent);
+    result = (char *)malloc(len + 1);
+    snprintf(result, len + 1, "%s%s%d", current_time_string, domain, ctx->number_of_mail_sent);
+
+    ctx->number_of_mail_sent++;
+
+    return result;
+}
+
 int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_node_list *list)
 {
     int write_socket;
@@ -169,6 +197,39 @@ int dispatch_task_to_worker(struct smtp_client_context* ctx, struct hashtable_no
         log_print(ctx->name, "select() failed");
         return -1;
     }
+
+    char *path = NULL;
+    struct smtp_client_worker_context *worker_ctx = ctx->worker_ctx + write_socket;
+    int len = snprintf(path, 0, "%s/%d", ctx->process_dir, worker_ctx->pid);
+
+    path = (char *)malloc(len + 1);
+    snprintf(path, len + 1, "%s/%d", ctx->process_dir, worker_ctx->pid);
+    const char *domain = list->list->key;
+    size_t domain_len = list->list->key_size;
+
+    struct hashtable_node *current_node = list->list;
+
+    for (uint32_t i = 0; i < list->list_length; i++)
+    {
+        if (strncmp(domain, current_node->key, domain_len) == 0)
+        {
+            char *path_to_file = NULL;
+            char * filename = generate_filename(ctx, domain);
+            len = snprintf(path_to_file, 0, "%s/%s/%s", path, domain, filename);
+            path_to_file = (char *)malloc(len + 1);
+            snprintf(path_to_file, len + 1, "%s/%s/%s", path, domain, filename);
+            log_print(ctx->name, "Moving '%s' to '%s'", current_node->value, path_to_file);
+            if (rename(current_node->value, path_to_file) != 0)
+            {
+                log_print(ctx->name, "Moving failed");
+            }
+            free(path_to_file);
+            free(filename);
+        }
+    }
+
+    send_task_to_worker(worker_ctx, domain, domain_len);
+    free(path);
 
     return 0;
 }

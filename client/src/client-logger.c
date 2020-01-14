@@ -40,9 +40,9 @@ int log_print(const char* name, const char *format, ...)
     size_t len = strlen(message);
 
     struct client_process_command command =
-            {
-                    .type = SMTP_CLIENT_LOG_PRINT
-            };
+    {
+        .type = SMTP_CLIENT_LOG_PRINT
+    };
 
     write(logger_socket, &command, sizeof(command));
     write(logger_socket, &len, sizeof(len));
@@ -55,9 +55,9 @@ int log_print(const char* name, const char *format, ...)
 int log_process_send_terminate()
 {
     struct client_process_command command =
-            {
-                    .type = SMTP_CLIENT_PROCESS_STOP
-            };
+    {
+        .type = SMTP_CLIENT_PROCESS_STOP
+    };
 
     write(logger_socket, &command, sizeof(command));
     close(logger_socket);
