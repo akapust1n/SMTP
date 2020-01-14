@@ -37,7 +37,6 @@
 #define DEFINE_FSM
 #include "client-fsm.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 /*
  *  Do not make changes to this file, except between the START/END
@@ -66,11 +65,14 @@ static client_fsm_callback_t
     client_fsm_do_STATE_CONNECTED_event_error,
     client_fsm_do_STATE_CREATE_SOCKET_event_error,
     client_fsm_do_STATE_ERROR_event_error,
+    client_fsm_do_STATE_FALLBACK_TO_HELO_event_error,
     client_fsm_do_STATE_FINISH_SENDING_MAIL_event_error,
     client_fsm_do_STATE_FREE_SOCKET_event_error,
     client_fsm_do_STATE_READY_TO_SEND_NEXT_MESSAGE_event_error,
     client_fsm_do_STATE_RECEIVE_DATA_RESPONSE_event_error,
+    client_fsm_do_STATE_RECEIVE_EHLO_MULTILINE_RESPONSE_event_error,
     client_fsm_do_STATE_RECEIVE_EHLO_RESPONSE_event_error,
+    client_fsm_do_STATE_RECEIVE_HELO_RESPONSE_event_error,
     client_fsm_do_STATE_RECEIVE_MAIL_FROM_RESPONSE_event_error,
     client_fsm_do_STATE_RECEIVE_MESSAGE_BODY_RESPONSE_event_error,
     client_fsm_do_STATE_RECEIVE_QUIT_RESPONSE_event_error,
@@ -78,12 +80,14 @@ static client_fsm_callback_t
     client_fsm_do_STATE_RECEIVE_SMTP_GREETING_event_error,
     client_fsm_do_STATE_SEND_DATA_event_error,
     client_fsm_do_STATE_SEND_EHLO_event_error,
+    client_fsm_do_STATE_SEND_HELO_event_error,
     client_fsm_do_STATE_SEND_MAIL_FROM_event_error,
     client_fsm_do_STATE_SEND_MESSAGE_BODY_event_error,
     client_fsm_do_STATE_SEND_QUIT_event_error,
     client_fsm_do_STATE_SEND_RCPT_TO_event_error,
     client_fsm_do_invalid,
     client_fsm_do_state_create_socket_event_connected,
+    client_fsm_do_state_fallback_to_helo_event_send_helo,
     client_fsm_do_state_finish_sending_mail_event_send_quit,
     client_fsm_do_state_ready_to_send_next_message_event_send_next_message,
     client_fsm_do_state_receive_data_response_event_send_message_body,
@@ -92,6 +96,7 @@ static client_fsm_callback_t
     client_fsm_do_state_receive_rcpt_to_response_event_send_data,
     client_fsm_do_state_receive_smtp_greeting_event_send_ehlo,
     client_fsm_do_state_send_data_event_got_data_response,
+    client_fsm_do_state_send_helo_event_got_helo_response,
     client_fsm_do_state_send_mail_from_event_got_mail_from_response,
     client_fsm_do_state_send_message_body_event_all_mail_sent,
     client_fsm_do_state_send_message_body_event_got_message_body_response,
@@ -119,6 +124,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -139,6 +148,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_STATE_CONNECTED, client_fsm_do_state_create_socket_event_connected }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -159,6 +172,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -179,6 +196,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_STATE_SEND_EHLO, client_fsm_do_state_receive_smtp_greeting_event_send_ehlo }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -199,6 +220,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -219,6 +244,10 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_STATE_SEND_MAIL_FROM, client_fsm_do_state_receive_ehlo_response_event_send_mail_from }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -235,10 +264,110 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_EHLO_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 6:  CLIENT_FSM_ST_STATE_SEND_MAIL_FROM */
+  /* STATE 6:  CLIENT_FSM_ST_STATE_RECEIVE_EHLO_MULTILINE_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_RCPT_TO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_DATA */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_DATA_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MESSAGE_BODY */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MESSAGE_BODY_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_READY_TO_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_ALL_MAIL_SENT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_QUIT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_QUIT_RESPONSE */
+    { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_EHLO_MULTILINE_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
+  },
+
+  /* STATE 7:  CLIENT_FSM_ST_STATE_FALLBACK_TO_HELO */
+  { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_STATE_SEND_HELO, client_fsm_do_state_fallback_to_helo_event_send_helo }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_RCPT_TO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_DATA */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_DATA_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MESSAGE_BODY */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MESSAGE_BODY_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_READY_TO_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_ALL_MAIL_SENT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_QUIT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_QUIT_RESPONSE */
+    { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_FALLBACK_TO_HELO_event_error } /* EVT:  EVENT_ERROR */
+  },
+
+  /* STATE 8:  CLIENT_FSM_ST_STATE_SEND_HELO */
+  { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_STATE_RECEIVE_EHLO_RESPONSE, client_fsm_do_state_send_helo_event_got_helo_response }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_RCPT_TO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_DATA */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_DATA_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MESSAGE_BODY */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MESSAGE_BODY_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_READY_TO_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_ALL_MAIL_SENT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_QUIT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_QUIT_RESPONSE */
+    { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_HELO_event_error } /* EVT:  EVENT_ERROR */
+  },
+
+  /* STATE 9:  CLIENT_FSM_ST_STATE_RECEIVE_HELO_RESPONSE */
+  { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_RCPT_TO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_DATA */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_DATA_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MESSAGE_BODY */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MESSAGE_BODY_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_READY_TO_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_ALL_MAIL_SENT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_NEXT_MESSAGE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_QUIT */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_QUIT_RESPONSE */
+    { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_HELO_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
+  },
+
+  /* STATE 10:  CLIENT_FSM_ST_STATE_SEND_MAIL_FROM */
+  { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_STATE_RECEIVE_MAIL_FROM_RESPONSE, client_fsm_do_state_send_mail_from_event_got_mail_from_response }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -255,10 +384,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_MAIL_FROM_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 7:  CLIENT_FSM_ST_STATE_RECEIVE_MAIL_FROM_RESPONSE */
+  /* STATE 11:  CLIENT_FSM_ST_STATE_RECEIVE_MAIL_FROM_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -275,10 +408,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_MAIL_FROM_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 8:  CLIENT_FSM_ST_STATE_SEND_RCPT_TO */
+  /* STATE 12:  CLIENT_FSM_ST_STATE_SEND_RCPT_TO */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -295,10 +432,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_RCPT_TO_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 9:  CLIENT_FSM_ST_STATE_RECEIVE_RCPT_TO_RESPONSE */
+  /* STATE 13:  CLIENT_FSM_ST_STATE_RECEIVE_RCPT_TO_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -315,10 +456,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_RCPT_TO_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 10:  CLIENT_FSM_ST_STATE_SEND_DATA */
+  /* STATE 14:  CLIENT_FSM_ST_STATE_SEND_DATA */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -335,10 +480,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_DATA_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 11:  CLIENT_FSM_ST_STATE_RECEIVE_DATA_RESPONSE */
+  /* STATE 15:  CLIENT_FSM_ST_STATE_RECEIVE_DATA_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -355,10 +504,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_DATA_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 12:  CLIENT_FSM_ST_STATE_SEND_MESSAGE_BODY */
+  /* STATE 16:  CLIENT_FSM_ST_STATE_SEND_MESSAGE_BODY */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -375,10 +528,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_MESSAGE_BODY_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 13:  CLIENT_FSM_ST_STATE_RECEIVE_MESSAGE_BODY_RESPONSE */
+  /* STATE 17:  CLIENT_FSM_ST_STATE_RECEIVE_MESSAGE_BODY_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -395,10 +552,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_MESSAGE_BODY_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 14:  CLIENT_FSM_ST_STATE_READY_TO_SEND_NEXT_MESSAGE */
+  /* STATE 18:  CLIENT_FSM_ST_STATE_READY_TO_SEND_NEXT_MESSAGE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -415,10 +576,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_READY_TO_SEND_NEXT_MESSAGE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 15:  CLIENT_FSM_ST_STATE_FINISH_SENDING_MAIL */
+  /* STATE 19:  CLIENT_FSM_ST_STATE_FINISH_SENDING_MAIL */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -435,10 +600,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_FINISH_SENDING_MAIL_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 16:  CLIENT_FSM_ST_STATE_SEND_QUIT */
+  /* STATE 20:  CLIENT_FSM_ST_STATE_SEND_QUIT */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -455,10 +624,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_SEND_QUIT_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 17:  CLIENT_FSM_ST_STATE_RECEIVE_QUIT_RESPONSE */
+  /* STATE 21:  CLIENT_FSM_ST_STATE_RECEIVE_QUIT_RESPONSE */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -475,10 +648,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_RECEIVE_QUIT_RESPONSE_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 18:  CLIENT_FSM_ST_STATE_FREE_SOCKET */
+  /* STATE 22:  CLIENT_FSM_ST_STATE_FREE_SOCKET */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -495,10 +672,14 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
     { CLIENT_FSM_ST_STATE_ERROR, client_fsm_do_STATE_FREE_SOCKET_event_error } /* EVT:  EVENT_ERROR */
   },
 
-  /* STATE 19:  CLIENT_FSM_ST_STATE_ERROR */
+  /* STATE 23:  CLIENT_FSM_ST_STATE_ERROR */
   { { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_CONNECTED */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_EHLO */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_RESPONSE_MULTILINE */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_EHLO_NOT_SUPPORTED */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_HELO */
+    { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_HELO_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_MAIL_FROM */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_GOT_MAIL_FROM_RESPONSE */
     { CLIENT_FSM_ST_INVALID, client_fsm_do_invalid }, /* EVT:  EVENT_SEND_RCPT_TO */
@@ -522,7 +703,7 @@ client_fsm_trans_table[ CLIENT_FSM_STATE_CT ][ CLIENT_FSM_EVENT_CT ] = {
 #define Client_FsmStInit_off     83
 
 
-static char const zClient_FsmStrings[914] =
+static char const zClient_FsmStrings[1122] =
 /*     0 */ "** OUT-OF-RANGE **\0"
 /*    19 */ "FSM Error:  in state %d (%s), event %d (%s) is invalid\n\0"
 /*    75 */ "invalid\0"
@@ -532,51 +713,59 @@ static char const zClient_FsmStrings[914] =
 /*   124 */ "state_receive_smtp_greeting\0"
 /*   152 */ "state_send_ehlo\0"
 /*   168 */ "state_receive_ehlo_response\0"
-/*   196 */ "state_send_mail_from\0"
-/*   217 */ "state_receive_mail_from_response\0"
-/*   250 */ "state_send_rcpt_to\0"
-/*   269 */ "state_receive_rcpt_to_response\0"
-/*   300 */ "state_send_data\0"
-/*   316 */ "state_receive_data_response\0"
-/*   344 */ "state_send_message_body\0"
-/*   368 */ "state_receive_message_body_response\0"
-/*   404 */ "state_ready_to_send_next_message\0"
-/*   437 */ "state_finish_sending_mail\0"
-/*   463 */ "state_send_quit\0"
-/*   479 */ "state_receive_quit_response\0"
-/*   507 */ "state_free_socket\0"
-/*   525 */ "state_error\0"
-/*   537 */ "event_connected\0"
-/*   553 */ "event_send_ehlo\0"
-/*   569 */ "event_got_ehlo_response\0"
-/*   593 */ "event_send_mail_from\0"
-/*   614 */ "event_got_mail_from_response\0"
-/*   643 */ "event_send_rcpt_to\0"
-/*   662 */ "event_got_rcpt_to_response\0"
-/*   689 */ "event_send_data\0"
-/*   705 */ "event_got_data_response\0"
-/*   729 */ "event_send_message_body\0"
-/*   753 */ "event_got_message_body_response\0"
-/*   785 */ "event_ready_to_send_next_message\0"
-/*   818 */ "event_all_mail_sent\0"
-/*   838 */ "event_send_next_message\0"
-/*   862 */ "event_send_quit\0"
-/*   878 */ "event_got_quit_response\0"
-/*   902 */ "event_error";
+/*   196 */ "state_receive_ehlo_multiline_response\0"
+/*   234 */ "state_fallback_to_helo\0"
+/*   257 */ "state_send_helo\0"
+/*   273 */ "state_receive_helo_response\0"
+/*   301 */ "state_send_mail_from\0"
+/*   322 */ "state_receive_mail_from_response\0"
+/*   355 */ "state_send_rcpt_to\0"
+/*   374 */ "state_receive_rcpt_to_response\0"
+/*   405 */ "state_send_data\0"
+/*   421 */ "state_receive_data_response\0"
+/*   449 */ "state_send_message_body\0"
+/*   473 */ "state_receive_message_body_response\0"
+/*   509 */ "state_ready_to_send_next_message\0"
+/*   542 */ "state_finish_sending_mail\0"
+/*   568 */ "state_send_quit\0"
+/*   584 */ "state_receive_quit_response\0"
+/*   612 */ "state_free_socket\0"
+/*   630 */ "state_error\0"
+/*   642 */ "event_connected\0"
+/*   658 */ "event_send_ehlo\0"
+/*   674 */ "event_got_ehlo_response\0"
+/*   698 */ "event_got_ehlo_response_multiline\0"
+/*   732 */ "event_got_ehlo_not_supported\0"
+/*   761 */ "event_send_helo\0"
+/*   777 */ "event_got_helo_response\0"
+/*   801 */ "event_send_mail_from\0"
+/*   822 */ "event_got_mail_from_response\0"
+/*   851 */ "event_send_rcpt_to\0"
+/*   870 */ "event_got_rcpt_to_response\0"
+/*   897 */ "event_send_data\0"
+/*   913 */ "event_got_data_response\0"
+/*   937 */ "event_send_message_body\0"
+/*   961 */ "event_got_message_body_response\0"
+/*   993 */ "event_ready_to_send_next_message\0"
+/*  1026 */ "event_all_mail_sent\0"
+/*  1046 */ "event_send_next_message\0"
+/*  1070 */ "event_send_quit\0"
+/*  1086 */ "event_got_quit_response\0"
+/*  1110 */ "event_error";
 
-static const size_t aszClient_FsmStates[20] = {
-    83,  88,  108, 124, 152, 168, 196, 217, 250, 269, 300, 316, 344, 368, 404,
-    437, 463, 479, 507, 525 };
+static const size_t aszClient_FsmStates[24] = {
+    83,  88,  108, 124, 152, 168, 196, 234, 257, 273, 301, 322, 355, 374, 405,
+    421, 449, 473, 509, 542, 568, 584, 612, 630 };
 
-static const size_t aszClient_FsmEvents[18] = {
-    537, 553, 569, 593, 614, 643, 662, 689, 705, 729, 753, 785, 818, 838, 862,
-    878, 902, 75 };
+static const size_t aszClient_FsmEvents[22] = {
+    642,  658,  674,  698,  732,  761,  777,  801,  822,  851,  870,  897,
+    913,  937,  961,  993,  1026, 1046, 1070, 1086, 1110, 75 };
 
 
-#define CLIENT_FSM_EVT_NAME(t)   ( (((unsigned)(t)) >= 18) \
+#define CLIENT_FSM_EVT_NAME(t)   ( (((unsigned)(t)) >= 22) \
     ? zClient_FsmStrings : zClient_FsmStrings + aszClient_FsmEvents[t])
 
-#define CLIENT_FSM_STATE_NAME(s) ( (((unsigned)(s)) >= 20) \
+#define CLIENT_FSM_STATE_NAME(s) ( (((unsigned)(s)) >= 24) \
     ? zClient_FsmStrings : zClient_FsmStrings + aszClient_FsmStates[s])
 
 #ifndef EXIT_FAILURE
@@ -653,6 +842,19 @@ client_fsm_do_STATE_ERROR_event_error(
 }
 
 static te_client_fsm_state
+client_fsm_do_STATE_FALLBACK_TO_HELO_event_error(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE FALLBACK TO HELO EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE FALLBACK TO HELO EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
 client_fsm_do_STATE_FINISH_SENDING_MAIL_event_error(
     const char *cmd,
     void *state,
@@ -705,6 +907,19 @@ client_fsm_do_STATE_RECEIVE_DATA_RESPONSE_event_error(
 }
 
 static te_client_fsm_state
+client_fsm_do_STATE_RECEIVE_EHLO_MULTILINE_RESPONSE_event_error(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE RECEIVE EHLO MULTILINE RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE RECEIVE EHLO MULTILINE RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
 client_fsm_do_STATE_RECEIVE_EHLO_RESPONSE_event_error(
     const char *cmd,
     void *state,
@@ -715,6 +930,19 @@ client_fsm_do_STATE_RECEIVE_EHLO_RESPONSE_event_error(
 /*  START == STATE RECEIVE EHLO RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
     return maybe_next;
 /*  END   == STATE RECEIVE EHLO RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
+client_fsm_do_STATE_RECEIVE_HELO_RESPONSE_event_error(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE RECEIVE HELO RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE RECEIVE HELO RESPONSE EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
 }
 
 static te_client_fsm_state
@@ -809,6 +1037,19 @@ client_fsm_do_STATE_SEND_EHLO_event_error(
 }
 
 static te_client_fsm_state
+client_fsm_do_STATE_SEND_HELO_event_error(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE SEND HELO EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE SEND HELO EVENT ERROR == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
 client_fsm_do_STATE_SEND_MAIL_FROM_event_error(
     const char *cmd,
     void *state,
@@ -884,6 +1125,19 @@ client_fsm_do_state_create_socket_event_connected(
 /*  START == STATE CREATE SOCKET EVENT CONNECTED == DO NOT CHANGE THIS COMMENT  */
     return maybe_next;
 /*  END   == STATE CREATE SOCKET EVENT CONNECTED == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
+client_fsm_do_state_fallback_to_helo_event_send_helo(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE FALLBACK TO HELO EVENT SEND HELO == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE FALLBACK TO HELO EVENT SEND HELO == DO NOT CHANGE THIS COMMENT  */
 }
 
 static te_client_fsm_state
@@ -988,6 +1242,19 @@ client_fsm_do_state_send_data_event_got_data_response(
 /*  START == STATE SEND DATA EVENT GOT DATA RESPONSE == DO NOT CHANGE THIS COMMENT  */
     return maybe_next;
 /*  END   == STATE SEND DATA EVENT GOT DATA RESPONSE == DO NOT CHANGE THIS COMMENT  */
+}
+
+static te_client_fsm_state
+client_fsm_do_state_send_helo_event_got_helo_response(
+    const char *cmd,
+    void *state,
+    te_client_fsm_state initial,
+    te_client_fsm_state maybe_next,
+    te_client_fsm_event trans_evt)
+{
+/*  START == STATE SEND HELO EVENT GOT HELO RESPONSE == DO NOT CHANGE THIS COMMENT  */
+    return maybe_next;
+/*  END   == STATE SEND HELO EVENT GOT HELO RESPONSE == DO NOT CHANGE THIS COMMENT  */
 }
 
 static te_client_fsm_state

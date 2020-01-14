@@ -39,6 +39,7 @@ struct smtp_client_worker_context
     int logger_socket;
     bool is_running;
     char *name;
+    te_client_fsm_state current_state;
 };
 
 #define MAIN_PROCESS_NAME "main"

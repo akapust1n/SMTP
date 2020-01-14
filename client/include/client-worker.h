@@ -8,23 +8,18 @@
 #include <sys/socket.h>
 #include "client-fsm.h"
 #include "client-context.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include "client-logger.h"
+#include "client-re.h"
 
-struct smtp_client_worker_context
+
+struct response_to_event
 {
-        const char *root_dir;
-	const char *outmail_dir;
-	const char *process_dir;
-	const char *sent_dir;
-	const char *log_file;
-	uint32_t mail_send_timeout;
-	uint32_t mail_retry_wait_time;
-	pid_t pid;
-	int master_socket;
-	int worker_socket;
-	int logger_socket;
-	bool is_running;
+    enum smtp_server_response response;
+    te_client_fsm_event event;
 };
-
 
 int worker_process_run(struct smtp_client_worker_context* ctx);
 
