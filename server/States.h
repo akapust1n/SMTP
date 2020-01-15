@@ -7,7 +7,10 @@ enum ServerClientStates {
     SC_HELO,
     SC_MAIL_CREATED_NO_RECEPIENT,
     SC_RCPT,
-    SC_ERROR,
+    SC_WDATA,
+    SC_RSET,
+    SC_DELIVERING,
+    SC_FINISH,
     SC_CLOSED,
     SC_Count
 };

@@ -17,6 +17,8 @@ constexpr int serverBufferSize = 1024;
 constexpr const char code220[] = "220";
 constexpr const char code250[] = "250";
 constexpr const char code451[] = "451";
+constexpr const char code354[] = "354";
+constexpr const char code221[] = "221";
 const int bufsize = 1024;
 constexpr const char serverDomain[] = "myserver.com";
 struct msg {
